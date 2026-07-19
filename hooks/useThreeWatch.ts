@@ -27,7 +27,7 @@ export function useThreeWatch() {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
-    camera.position.set(0, 0.4, 4.2)
+    camera.position.set(0, 0.35, 5.2)
 
     const resize = () => {
       const w = canvas.clientWidth
@@ -101,7 +101,7 @@ export function useThreeWatch() {
       group.add(strap)
     })
 
-    group.scale.setScalar(1.15)
+    group.scale.setScalar(0.85)
 
     const s = stateRef.current
     const onDown = (e: PointerEvent) => {
