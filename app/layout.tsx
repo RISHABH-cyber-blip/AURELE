@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${fraunces.variable} ${inter.variable} ${spaceMono.variable}`}
     >
-      <body className="bg-cream text-ink font-body antialiased">{children}</body>
+      <body suppressHydrationWarning className="bg-cream text-ink font-body antialiased">{children}</body>
     </html>
   )
 }

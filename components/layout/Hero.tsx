@@ -13,7 +13,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function Hero() {
   return (
-    <section id="hero" className="relative min-h-screen grid md:grid-cols-2 items-center px-6 md:px-16 pt-32 pb-20">
+    <section suppressHydrationWarning id="hero" className="relative min-h-screen grid md:grid-cols-2 items-center px-6 md:px-16 pt-32 pb-20">
       <div className="relative z-10 order-2 md:order-1">
         <motion.p {...fadeUp(0.1)} className="font-mono text-xs tracking-[4px] uppercase text-gold mb-6">
           The 2026 Collection

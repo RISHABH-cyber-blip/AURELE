@@ -6,7 +6,7 @@ export default function FeaturedBrands() {
   const doubled = [...FEATURED_BRANDS, ...FEATURED_BRANDS]
 
   return (
-    <section className="border-y border-cream-deep py-10 overflow-hidden">
+    <section suppressHydrationWarning className="border-y border-cream-deep py-10 overflow-hidden">
       <p className="text-center font-mono text-[11px] tracking-[4px] uppercase text-ink-faint mb-8">
         Trusted Houses
       </p>
