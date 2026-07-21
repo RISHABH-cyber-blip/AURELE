@@ -1,6 +1,7 @@
 import { PrismaClient, WatchStyle, StrapMaterial, VariantStatus } from '@prisma/client'
 
 const prisma = new PrismaClient()
+type BrandResult = Awaited<ReturnType<typeof prisma.brand.upsert>>
 
 // Fictional-but-plausible brands (see earlier note on why real trademarked
 // names/photos aren't used without an actual distributor agreement).
@@ -34,10 +35,9 @@ async function main() {
     { name: 'Northfield & Sons', slug: 'northfield-sons', description: 'Rugged field watches, built to outlast.' },
   ]
 
-  const brands = []
-  for (const b of brandData) {
-    brands.push(await prisma.brand.upsert({ where: { slug: b.slug }, update: {}, create: b }))
-  }
+  const brands = await Promise.all(
+    brandData.map((b) => prisma.brand.upsert({ where: { slug: b.slug }, update: {}, create: b }))
+  ) as [BrandResult, BrandResult, BrandResult, BrandResult, BrandResult]
   const [solstice, meridian, verlainne, castellane, northfield] = brands
 
   // ── Products + Variants ──
