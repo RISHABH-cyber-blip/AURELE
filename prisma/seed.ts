@@ -37,8 +37,8 @@ async function main() {
   let variantCount = 0
 
   for (let bIdx = 0; bIdx < brandRecords.length; bIdx++) {
-    const brand = brandRecords[bIdx]
-    const brandSlug = BRANDS[bIdx].slug
+    const brand = brandRecords[bIdx]!
+    const brandSlug = BRANDS[bIdx]!.slug
     // CHANGED: this brand's pool of (up to) 10 real photos
     const imagePool = brandImages[brandSlug] ?? []
 
@@ -55,9 +55,9 @@ async function main() {
       // CHANGED: cycle through the brand's photo pool instead of reusing one.
       // Product 0 gets photo[0], product 1 gets photo[1], ... product 10
       // wraps back to photo[0], etc. — real variety without more API calls.
-      const imageUrl =
+      const imageUrl: string =
         imagePool.length > 0
-          ? imagePool[p % imagePool.length]
+          ? imagePool[p % imagePool.length]!
           : `https://placehold.co/800x800/1a1a1a/e7ddcc?text=${encodeURIComponent(brand.name)}`
 
       const product = await prisma.product.upsert({
