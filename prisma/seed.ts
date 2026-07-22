@@ -4,9 +4,8 @@ import { BRANDS, MODEL_LINES, SIZES, DIAL_COLORS, STRAPS, STYLES, PRODUCTS_PER_B
 
 const prisma = new PrismaClient()
 
-// Loads real Unsplash photo URLs if you've run fetch-brand-images.ts,
-// otherwise falls back to placeholder graphics automatically.
-function loadBrandImages(): Record<string, string> {
+// CHANGED: now loads an ARRAY of images per brand (was a single string before)
+function loadBrandImages(): Record<string, string[]> {
   if (existsSync('data/brand-images.json')) {
     return JSON.parse(readFileSync('data/brand-images.json', 'utf-8'))
   }
@@ -16,7 +15,7 @@ function loadBrandImages(): Record<string, string> {
 async function main() {
   const brandImages = loadBrandImages()
   const usingRealPhotos = Object.keys(brandImages).length > 0
-  console.log(usingRealPhotos ? 'Using real Unsplash photos.' : 'No brand-images.json found — using placeholders. Run fetch-brand-images.ts first for real photos.')
+  console.log(usingRealPhotos ? 'Using real Unsplash photos.' : 'No brand-images.json found — using placeholders.')
 
   const mens = await prisma.category.upsert({ where: { slug: 'mens' }, update: {}, create: { name: "Men's", slug: 'mens' } })
   const womens = await prisma.category.upsert({ where: { slug: 'womens' }, update: {}, create: { name: "Women's", slug: 'womens' } })
@@ -38,11 +37,10 @@ async function main() {
   let variantCount = 0
 
   for (let bIdx = 0; bIdx < brandRecords.length; bIdx++) {
-    const brand = brandRecords[bIdx]!
-    const brandSlug = BRANDS[bIdx]!.slug
-    const imageUrl =
-      brandImages[brandSlug] ||
-      `https://placehold.co/800x800/1a1a1a/e7ddcc?text=${encodeURIComponent(brand.name)}`
+    const brand = brandRecords[bIdx]
+    const brandSlug = BRANDS[bIdx].slug
+    // CHANGED: this brand's pool of (up to) 10 real photos
+    const imagePool = brandImages[brandSlug] ?? []
 
     for (let p = 0; p < PRODUCTS_PER_BRAND; p++) {
       const line = seededPick(MODEL_LINES, bIdx + p)
@@ -54,9 +52,17 @@ async function main() {
       const productName = `${brand.name.split(' ')[0]} ${line} ${size} ${String(p + 1).padStart(2, '0')}`
       const slug = `${brand.slug}-${line.toLowerCase()}-${size}-${p + 1}`
 
+      // CHANGED: cycle through the brand's photo pool instead of reusing one.
+      // Product 0 gets photo[0], product 1 gets photo[1], ... product 10
+      // wraps back to photo[0], etc. — real variety without more API calls.
+      const imageUrl =
+        imagePool.length > 0
+          ? imagePool[p % imagePool.length]
+          : `https://placehold.co/800x800/1a1a1a/e7ddcc?text=${encodeURIComponent(brand.name)}`
+
       const product = await prisma.product.upsert({
         where: { slug },
-        update: {},
+        update: { images: { deleteMany: {}, create: [{ url: imageUrl, altText: productName, position: 0 }] } },
         create: {
           name: productName,
           slug,
@@ -86,7 +92,7 @@ async function main() {
         variantCount++
       }
     }
-    console.log(`  ${brand.name}: done`)
+    console.log(`  ${brand.name}: done (${imagePool.length} unique photos used)`)
   }
 
   console.log(`\nSeeded ${brandRecords.length} brands, ${productCount} products, ${variantCount} variants.`)

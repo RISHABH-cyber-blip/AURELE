@@ -35,3 +35,14 @@
     @apply py-section md:py-section-lg;
   }
 }
+
+@layer utilities {
+  .brand-scroll {
+    animation: brandScroll 38s linear infinite;
+  }
+
+  @keyframes brandScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}

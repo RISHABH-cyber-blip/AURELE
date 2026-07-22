@@ -12,10 +12,7 @@ export default function FeaturedBrands() {
       </p>
 
       <div className="overflow-hidden">
-        <div
-          className="flex gap-16 whitespace-nowrap w-max"
-          style={{ animation: 'brandScroll 38s linear infinite' }}
-        >
+        <div className="flex gap-16 whitespace-nowrap w-max brand-scroll">
           {doubled.map((name, i) => (
             <span
               key={i}
@@ -26,13 +23,7 @@ export default function FeaturedBrands() {
           ))}
         </div>
       </div>
-
-      <style>{`
-        @keyframes brandScroll {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-      `}</style>
+      
     </section>
   )
 }
