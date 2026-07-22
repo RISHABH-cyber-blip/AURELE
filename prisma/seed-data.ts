@@ -42,5 +42,9 @@ export const STYLES = [
 export const PRODUCTS_PER_BRAND = 30
 
 export function seededPick<T>(arr: T[], seed: number): T {
-  return arr[seed % arr.length]
+  if (arr.length === 0) {
+    throw new Error('seededPick requires a non-empty array')
+  }
+  const index = seed % arr.length
+  return arr[index]!
 }

@@ -38,8 +38,8 @@ async function main() {
   let variantCount = 0
 
   for (let bIdx = 0; bIdx < brandRecords.length; bIdx++) {
-    const brand = brandRecords[bIdx]
-    const brandSlug = BRANDS[bIdx].slug
+    const brand = brandRecords[bIdx]!
+    const brandSlug = BRANDS[bIdx]!.slug
     const imageUrl =
       brandImages[brandSlug] ||
       `https://placehold.co/800x800/1a1a1a/e7ddcc?text=${encodeURIComponent(brand.name)}`
