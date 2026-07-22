@@ -33,12 +33,13 @@ async function main() {
     { name: 'Verlainne', slug: 'verlainne', description: 'Minimalist automatics for daily wear.' },
     { name: 'Castellane', slug: 'castellane', description: "Women's fine watches with interchangeable straps." },
     { name: 'Northfield & Sons', slug: 'northfield-sons', description: 'Rugged field watches, built to outlast.' },
+    {name: 'Aurum & Co.', slug: 'aurum-co', description: 'Luxury watches with a modern twist.'},
   ]
 
   const brands = await Promise.all(
     brandData.map((b) => prisma.brand.upsert({ where: { slug: b.slug }, update: {}, create: b }))
-  ) as [BrandResult, BrandResult, BrandResult, BrandResult, BrandResult]
-  const [solstice, meridian, verlainne, castellane, northfield] = brands
+  ) as [BrandResult, BrandResult, BrandResult, BrandResult, BrandResult, BrandResult]
+  const [solstice, meridian, verlainne, castellane, northfield, aurum] = brands
 
   // ── Products + Variants ──
   // Each product gets 2-3 variants (dial color / strap combos) with real
@@ -115,6 +116,19 @@ async function main() {
       variants: [
         { dialColor: 'Olive', strapMaterial: StrapMaterial.SILICONE, stockQuantity: 13 },
         { dialColor: 'Sand', strapMaterial: StrapMaterial.CERAMIC, stockQuantity: 5 },
+      ],
+    },
+    {
+      name: 'Aurum & Co. Eclipse',
+      slug: 'aurum-eclipse',
+      brand: brands[5], // Aurum & Co.
+      category: unisex,
+      style: WatchStyle.AUTOMATIC,
+      basePrice: 499,
+      description: 'A sleek automatic watch with a minimalist design.',
+      image: 'https://res.cloudinary.com/qiirhuuf/image/upload/f_auto,q_auto/pexels-alexazabache-3766111_aquxvc',
+      variants: [
+        { dialColor: 'Black', strapMaterial: StrapMaterial.LEATHER, stockQuantity: 10 },
       ],
     },
   ]
