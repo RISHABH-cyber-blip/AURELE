@@ -20,7 +20,7 @@ export default function ProductCard({ product }: Props) {
 
   return (
     <Link href={`/product/${product.slug}`} className="group block">
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-cream-soft mb-4">
+      <div suppressHydrationWarning className="relative aspect-square rounded-2xl overflow-hidden bg-cream-soft mb-4">
         {product.images[0] && (
           <Image
             src={product.images[0].url}
