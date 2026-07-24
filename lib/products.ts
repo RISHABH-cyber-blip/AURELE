@@ -83,6 +83,10 @@ export async function getRelatedProducts(brandId: string, excludeProductId: stri
   return prisma.product.findMany({
     where: { brandId, id: { not: excludeProductId }, isPublished: true },
     take: 4,
-    include: { brand: true, images: { orderBy: { position: 'asc' }, take: 1 } },
+    include: {
+      brand: true,
+      images: { orderBy: { position: 'asc' }, take: 1 },
+      variants: { select: { dialColor: true, stockQuantity: true } },
+    },
   })
 }

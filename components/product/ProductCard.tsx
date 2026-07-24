@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
 
 interface Props {
@@ -9,25 +8,25 @@ interface Props {
     basePrice: any // Prisma Decimal — converted with Number() below
     brand: { name: string }
     images: { url: string; altText: string | null }[]
-    variants: { dialColor: string | null; stockQuantity: number }[]
+    variants?: { dialColor: string | null; stockQuantity: number }[]
   }
 }
 
 export default function ProductCard({ product }: Props) {
-  const totalStock = product.variants.reduce((sum, v) => sum + v.stockQuantity, 0)
-  const colorCount = new Set(product.variants.map((v) => v.dialColor).filter(Boolean)).size
+  const variants = product.variants ?? []
+  const totalStock = variants.reduce((sum, v) => sum + v.stockQuantity, 0)
+  const colorCount = new Set(variants.map((v) => v.dialColor).filter(Boolean)).size
   const price = Number(product.basePrice)
 
   return (
     <Link href={`/product/${product.slug}`} className="group block">
-      <div suppressHydrationWarning className="relative aspect-square rounded-2xl overflow-hidden bg-cream-soft mb-4">
+      <div className="aspect-square rounded-2xl overflow-hidden bg-cream-soft mb-4">
         {product.images[0] && (
-          <Image
+          <img
             src={product.images[0].url}
             alt={product.images[0].altText ?? product.name}
-            fill
-            className="object-cover transition-calm group-hover:scale-[1.04]"
-            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover w-full h-full transition-calm group-hover:scale-[1.04]"
+            loading="lazy"
           />
         )}
         {totalStock === 0 && (

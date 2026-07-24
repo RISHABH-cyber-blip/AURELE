@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import VariantSelector from '@/components/product/VariantSelector'
 import RelatedProducts from '@/components/product/RelatedProducts'
@@ -24,15 +23,13 @@ export default async function ProductPage({ params }: Props) {
       <main className="px-6 md:px-16 pt-32 pb-24">
         <div className="grid md:grid-cols-2 gap-12 md:gap-20 max-w-6xl mx-auto">
           {/* Image */}
-          <div className="relative aspect-square rounded-2xl overflow-hidden bg-cream-soft">
+          <div className="aspect-square rounded-2xl overflow-hidden bg-cream-soft">
             {mainImage && (
-              <Image
+              <img
                 src={mainImage}
                 alt={product.images[0]?.altText ?? product.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
+                className="object-cover w-full h-full"
+                loading="eager"
               />
             )}
           </div>
