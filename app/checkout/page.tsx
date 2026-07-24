@@ -1,9 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Script from 'next/script'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { useCartStore } from '@/store/cart-store'
 import { formatPrice } from '@/lib/utils'
+
+declare global {
+  interface Window {
+    Razorpay: any
+  }
+}
 
 export default function CheckoutPage() {
   const { items, totalPrice } = useCartStore()
@@ -11,6 +19,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const router = useRouter()
 
   useEffect(() => setMounted(true), [])
 
@@ -35,7 +44,40 @@ export default function CheckoutPage() {
       return
     }
 
-    window.location.href = data.url // Stripe's hosted payment page
+    const razorpayOptions = {
+      key: data.keyId,
+      amount: data.amount,
+      currency: data.currency,
+      order_id: data.razorpayOrderId,
+      name: 'Aurele',
+      description: 'Order Payment',
+      prefill: { email },
+      theme: { color: '#B8935F' }, // matches our gold accent
+      handler: async function (response: any) {
+        const verifyRes = await fetch('/api/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            internalOrderId: data.internalOrderId,
+          }),
+        })
+
+        if (verifyRes.ok) {
+          router.push('/checkout/success')
+        } else {
+          setError('Payment succeeded but verification failed — contact support.')
+        }
+      },
+      modal: {
+        ondismiss: () => setLoading(false),
+      },
+    }
+
+    const razorpayInstance = new window.Razorpay(razorpayOptions)
+    razorpayInstance.open()
   }
 
   if (!mounted) return null
@@ -53,6 +95,9 @@ export default function CheckoutPage() {
 
   return (
     <>
+      {/* Razorpay's checkout widget script */}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
       <Navbar />
       <main className="px-6 md:px-16 pt-32 pb-24 max-w-2xl mx-auto">
         <p className="font-mono text-xs tracking-[4px] uppercase text-gold mb-3">Checkout</p>
@@ -92,7 +137,7 @@ export default function CheckoutPage() {
           disabled={loading || !email}
           className="w-full py-3.5 rounded-full text-[14px] tracking-wide font-medium bg-ink text-cream transition-calm hover:opacity-85 disabled:opacity-40"
         >
-          {loading ? 'Redirecting to secure payment…' : 'Pay Securely with Stripe'}
+          {loading ? 'Opening secure payment…' : 'Pay Securely with Razorpay'}
         </button>
       </main>
     </>
