@@ -57,5 +57,8 @@ export const COLOR_QUERIES: Record<string, { unsplashColor?: string; queries: st
 }
 
 export function seededPick<T>(arr: T[], seed: number): T {
-  return arr[seed % arr.length]
+  if (arr.length === 0) {
+    throw new Error('seededPick requires a non-empty array')
+  }
+  return arr[seed % arr.length]!
 }

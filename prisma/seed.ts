@@ -25,13 +25,13 @@ async function main() {
   // cycle sequentially instead of repeating early.
   const colorRotation: Record<string, number> = {}
   function nextImageForColor(color: string): string {
-    const pool = colorImages[color]?.length ? colorImages[color] : allPhotosFallback
+    const pool = colorImages[color]?.length ? colorImages[color]! : allPhotosFallback
     if (pool.length === 0) {
       return `https://placehold.co/800x800/1a1a1a/e7ddcc?text=${encodeURIComponent(color)}`
     }
     const i = colorRotation[color] ?? 0
     colorRotation[color] = i + 1
-    return pool[i % pool.length]
+    return pool[i % pool.length]!
   }
 
   const mens = await prisma.category.upsert({ where: { slug: 'mens' }, update: {}, create: { name: "Men's", slug: 'mens' } })
@@ -48,7 +48,7 @@ async function main() {
   let variantCount = 0
 
   for (let bIdx = 0; bIdx < brandRecords.length; bIdx++) {
-    const brand = brandRecords[bIdx]
+    const brand = brandRecords[bIdx]!
 
     for (let p = 0; p < PRODUCTS_PER_BRAND; p++) {
       const line = seededPick(MODEL_LINES, bIdx + p)
