@@ -5,14 +5,18 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { NAV_LINKS } from '@/data'
+import { useCartStore } from '@/store/cart-store'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const totalQty = useCartStore((s) => s.totalQty())
+
+  // Cart is persisted to localStorage, which doesn't exist during server
+  // rendering — this avoids a mismatch flash between server and client.
   const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
-    setMounted(true)
-
     const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -27,35 +31,38 @@ export default function Navbar() {
         scrolled ? 'bg-cream/90 backdrop-blur-md border-b border-cream-deep' : 'border-b border-transparent'
       }`}
     >
-      <div suppressHydrationWarning className="flex items-center justify-between w-full">
-        <Link href="/" className="font-display text-2xl md:text-3xl tracking-[3px] text-ink font-light">
-          AURELE
+      <Link href="/" className="font-display text-2xl md:text-3xl tracking-[3px] text-ink font-light">
+        AURELE
+      </Link>
+
+      <ul className="hidden md:flex items-center gap-9 list-none">
+        {NAV_LINKS.map((link) => (
+          <li key={link.label}>
+            <Link href={link.href} className="text-[13px] tracking-wide text-ink-soft hover:text-gold transition-calm">
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex items-center gap-5 text-ink">
+        <button aria-label="Search" className="hover:text-gold transition-calm">
+          <Search size={19} strokeWidth={1.5} />
+        </button>
+        <Link href="/account" aria-label="Account" className="hidden sm:block hover:text-gold transition-calm">
+          <User size={19} strokeWidth={1.5} />
         </Link>
-
-        <ul className="hidden md:flex items-center gap-9 list-none">
-          {NAV_LINKS.map((link) => (
-            <li key={link.label}>
-              <Link href={link.href} className="text-[13px] tracking-wide text-ink-soft hover:text-gold transition-calm">
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-5 text-ink">
-          <button aria-label="Search" className="hover:text-gold transition-calm">
-            {mounted ? <Search size={19} strokeWidth={1.5} /> : null}
-          </button>
-          <Link href="/account" aria-label="Account" className="hidden sm:block hover:text-gold transition-calm">
-            {mounted ? <User size={19} strokeWidth={1.5} /> : null}
-          </Link>
-          <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-calm">
-            {mounted ? <Heart size={19} strokeWidth={1.5} /> : null}
-          </Link>
-          <Link href="/cart" aria-label="Cart" className="relative hover:text-gold transition-calm">
-            {mounted ? <ShoppingBag size={19} strokeWidth={1.5} /> : null}
-          </Link>
-        </div>
+        <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-calm">
+          <Heart size={19} strokeWidth={1.5} />
+        </Link>
+        <Link href="/cart" aria-label="Cart" className="relative hover:text-gold transition-calm">
+          <ShoppingBag size={19} strokeWidth={1.5} />
+          {mounted && totalQty > 0 && (
+            <span className="absolute -top-2 -right-2 w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-gold text-ink">
+              {totalQty}
+            </span>
+          )}
+        </Link>
       </div>
     </motion.nav>
   )
