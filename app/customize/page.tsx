@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Suspense } from 'react'
 import Navbar from '@/components/layout/Navbar'
-import WatchCanvas from '@/components/three/WatchCanvas'
-import CustomizerPanel from '@/components/customize/CustomizerPanel'
+import WatchCanvas from '@/components/three/watchCanvas'
+import CustomizerPanel from '@/components/three/customize/CustomizerPanel'
 import { CASE_METALS, DIAL_COLORS, STRAP_MATERIALS, type BuildConfig } from '@/lib/customize-options'
 import type { WatchColorConfig } from '@/hooks/useThreeWatch'
 
