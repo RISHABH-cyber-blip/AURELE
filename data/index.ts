@@ -2,6 +2,7 @@ export const NAV_LINKS = [
   { label: "Men's", href: '/shop?category=mens' },
   { label: "Women's", href: '/shop?category=womens' },
   { label: 'Shop by Brand', href: '/shop' },
+  { label: 'Design Yours', href: '/customize' },
   { label: 'Authenticity', href: '/authenticity' },
 ]
 

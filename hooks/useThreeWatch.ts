@@ -1,13 +1,25 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
+export interface WatchColorConfig {
+  caseHex: string
+  dialHex: string
+  strapHex: string
+}
+
 /**
  * useThreeWatch
- * Builds a simple procedural watch (case, bezel, dial, hands, strap lugs)
- * entirely from primitives — no .glb model needed yet.
+ * Builds a procedural watch, same as before — but now accepts a live
+ * `config` (case/dial/strap colors). When config changes, materials don't
+ * snap instantly — they LERP (blend) toward the new color over time in
+ * the render loop, same "calm motion" principle used everywhere else in
+ * the design, just applied at the material level instead of layout.
  */
-export function useThreeWatch() {
+export function useThreeWatch(config: WatchColorConfig) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const configRef = useRef(config)
+  configRef.current = config // always read the latest config inside the render loop
+
   const stateRef = useRef({
     rotY: 0.4,
     rotX: 0,
@@ -27,7 +39,7 @@ export function useThreeWatch() {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
-    camera.position.set(0, 0.35, 5.2)
+    camera.position.set(0, 0.4, 4.2)
 
     const resize = () => {
       const w = canvas.clientWidth
@@ -51,12 +63,28 @@ export function useThreeWatch() {
     const group = new THREE.Group()
     scene.add(group)
 
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xb8935f, metalness: 0.75, roughness: 0.28 })
+    // These three materials are the ones the configurator controls live.
+    const caseMat = new THREE.MeshStandardMaterial({
+      color: configRef.current.caseHex,
+      metalness: 0.75,
+      roughness: 0.28,
+    })
+    const dialMat = new THREE.MeshStandardMaterial({
+      color: configRef.current.dialHex,
+      metalness: 0.1,
+      roughness: 0.6,
+    })
+    const strapMat = new THREE.MeshStandardMaterial({
+      color: configRef.current.strapHex,
+      metalness: 0.2,
+      roughness: 0.7,
+    })
+    // Fixed brand-gold accent for hands/markers — stays constant so the
+    // watch always reads as "Aurele" regardless of the customer's build.
+    const accentMat = new THREE.MeshStandardMaterial({ color: 0xb8935f, metalness: 0.8, roughness: 0.25 })
     const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.4, roughness: 0.5 })
-    const dialMat = new THREE.MeshStandardMaterial({ color: 0xfaf6f0, metalness: 0.1, roughness: 0.6 })
-    const strapMat = new THREE.MeshStandardMaterial({ color: 0x2a2622, metalness: 0.1, roughness: 0.85 })
 
-    const bezel = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.32, 64), goldMat)
+    const bezel = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.32, 64), caseMat)
     bezel.rotation.x = Math.PI / 2
     group.add(bezel)
 
@@ -67,7 +95,7 @@ export function useThreeWatch() {
 
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2
-      const tick = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.02), darkMat)
+      const tick = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.02), accentMat)
       tick.position.set(Math.sin(angle) * 0.95, Math.cos(angle) * 0.95, 0.22)
       tick.rotation.z = -angle
       group.add(tick)
@@ -83,14 +111,14 @@ export function useThreeWatch() {
     minuteHand.rotation.z = -Math.PI / 1.6
     group.add(minuteHand)
 
-    const secondHand = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.95, 0.03), goldMat)
+    const secondHand = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.95, 0.03), accentMat)
     const secondPivot = new THREE.Group()
     secondPivot.add(secondHand)
     secondHand.position.set(0, 0.45, 0)
     secondPivot.position.z = 0.26
     group.add(secondPivot)
 
-    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.1, 16), goldMat)
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.1, 16), accentMat)
     pin.rotation.x = Math.PI / 2
     pin.position.z = 0.27
     group.add(pin)
@@ -101,8 +129,9 @@ export function useThreeWatch() {
       group.add(strap)
     })
 
-    group.scale.setScalar(0.85)
+    group.scale.setScalar(1.15)
 
+    /* ── Interaction ── */
     const s = stateRef.current
     const onDown = (e: PointerEvent) => {
       s.isDragging = true
@@ -127,6 +156,12 @@ export function useThreeWatch() {
     window.addEventListener('pointerup', onUp)
     window.addEventListener('pointermove', onMove)
 
+    // Reused each frame instead of allocating a new THREE.Color 3x per
+    // frame — small perf detail, matters once this runs for minutes.
+    const tmpCaseTarget = new THREE.Color()
+    const tmpDialTarget = new THREE.Color()
+    const tmpStrapTarget = new THREE.Color()
+
     const clock = new THREE.Clock()
     let raf: number
 
@@ -141,6 +176,17 @@ export function useThreeWatch() {
 
       secondPivot.rotation.z = -((Date.now() / 1000) % 60) * ((Math.PI * 2) / 60)
 
+      // Smoothly blend toward whatever the configurator's latest colors
+      // are — this is what makes swapping options feel premium instead
+      // of a jarring instant color-swap.
+      const cfg = configRef.current
+      tmpCaseTarget.set(cfg.caseHex)
+      tmpDialTarget.set(cfg.dialHex)
+      tmpStrapTarget.set(cfg.strapHex)
+      caseMat.color.lerp(tmpCaseTarget, 0.06)
+      dialMat.color.lerp(tmpDialTarget, 0.06)
+      strapMat.color.lerp(tmpStrapTarget, 0.06)
+
       renderer.render(scene, camera)
     }
     animate()
@@ -153,7 +199,7 @@ export function useThreeWatch() {
       window.removeEventListener('pointermove', onMove)
       renderer.dispose()
     }
-  }, [])
+  }, []) // scene builds once — config changes are read live via configRef, not rebuilt
 
   return canvasRef
 }

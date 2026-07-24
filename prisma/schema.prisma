@@ -233,3 +233,17 @@ enum OrderStatus {
   CANCELLED
   REFUNDED
 }
+
+// Captures interest from the 3D configurator — a real design a customer
+// built, worth following up on personally, even without full checkout
+// integration (custom builds aren't real stocked SKUs).
+model CustomBuildRequest {
+  id             String   @id @default(cuid())
+  email          String
+  caseMetal      String
+  dialColor      String
+  strapMaterial  String
+  size           Int
+  estimatedPrice Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+}

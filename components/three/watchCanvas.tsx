@@ -1,9 +1,19 @@
 'use client'
 
-import { useThreeWatch } from '@/hooks/useThreeWatch'
+import { useThreeWatch, type WatchColorConfig } from '@/hooks/useThreeWatch'
 
-export default function WatchCanvas() {
-  const canvasRef = useThreeWatch()
+interface Props {
+  config?: WatchColorConfig
+}
+
+const DEFAULT_CONFIG: WatchColorConfig = {
+  caseHex: '#B8935F',
+  dialHex: '#1A1A1A',
+  strapHex: '#3B2A20',
+}
+
+export default function WatchCanvas({ config = DEFAULT_CONFIG }: Props) {
+  const canvasRef = useThreeWatch(config)
 
   return (
     <canvas
