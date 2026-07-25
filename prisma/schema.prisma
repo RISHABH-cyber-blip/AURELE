@@ -248,3 +248,17 @@ model CustomBuildRequest {
   estimatedPrice Decimal  @db.Decimal(10, 2)
   createdAt      DateTime @default(now())
 }
+
+// Captures real restock interest — shown automatically when a variant
+// hits 0 stock. Not a fake "X people viewing" trick — a genuine signup
+// you could later wire to an actual restock email via Resend.
+model RestockNotification {
+  id        String         @id @default(cuid())
+  email     String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  variantId String
+  notified  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+
+  @@unique([email, variantId])
+}
