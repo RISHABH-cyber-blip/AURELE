@@ -1,5 +1,6 @@
 declare module 'three/examples/jsm/loaders/GLTFLoader.js' {
   import { AnimationClip, Group, LoadingManager, Loader } from 'three'
+  import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
   export interface GLTF {
     scene: Group
@@ -23,5 +24,22 @@ declare module 'three/examples/jsm/loaders/GLTFLoader.js' {
       onLoad: (gltf: GLTF) => void,
       onError?: (event: ErrorEvent | Error) => void,
     ): void
+    setDRACOLoader(dracoLoader: DRACOLoader): this
+  }
+}
+
+declare module 'three/examples/jsm/loaders/DRACOLoader.js' {
+  import { LoadingManager, Loader } from 'three'
+
+  export class DRACOLoader extends Loader {
+    constructor(manager?: LoadingManager)
+    setDecoderPath(path: string): this
+    decodeDracoFile(
+      buffer: ArrayBuffer,
+      callback: (geometry: any) => void,
+      attributeIDs?: Record<string, number>,
+      attributeTypes?: Record<string, number>,
+    ): void
+    dispose(): void
   }
 }

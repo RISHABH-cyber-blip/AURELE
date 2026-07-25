@@ -24,6 +24,7 @@ export default function Navbar() {
 
   return (
     <motion.nav
+      suppressHydrationWarning
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -47,16 +48,20 @@ export default function Navbar() {
 
       <div className="flex items-center gap-5 text-ink">
         <button aria-label="Search" className="hover:text-gold transition-calm">
-          <Search size={19} strokeWidth={1.5} />
+          {mounted ? (
+            <Search size={19} strokeWidth={1.5} />
+          ) : (
+            <span className="inline-block w-[19px] h-[19px]" aria-hidden />
+          )}
         </button>
         <Link href="/account" aria-label="Account" className="hidden sm:block hover:text-gold transition-calm">
-          <User size={19} strokeWidth={1.5} />
+          {mounted ? <User size={19} strokeWidth={1.5} /> : <span className="inline-block w-[19px] h-[19px]" aria-hidden />}
         </Link>
         <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-calm">
-          <Heart size={19} strokeWidth={1.5} />
+          {mounted ? <Heart size={19} strokeWidth={1.5} /> : <span className="inline-block w-[19px] h-[19px]" aria-hidden />}
         </Link>
         <Link href="/cart" aria-label="Cart" className="relative hover:text-gold transition-calm">
-          <ShoppingBag size={19} strokeWidth={1.5} />
+          {mounted ? <ShoppingBag size={19} strokeWidth={1.5} /> : <span className="inline-block w-[19px] h-[19px]" aria-hidden />}
           {mounted && totalQty > 0 && (
             <span className="absolute -top-2 -right-2 w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-gold text-ink">
               {totalQty}
