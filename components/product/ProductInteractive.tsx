@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getStockDisplay } from '@/lib/inventory'
+import { getStockDisplay } from '@/lib/stock'
 import { formatPrice, cn } from '@/lib/utils'
 import { useCartStore } from '@/store/cart-store'
 
@@ -56,7 +56,7 @@ export default function ProductInteractive({ variants, basePrice, currency, prod
   useEffect(() => {
     const el = mainButtonRef.current
     if (!el) return
-    const observer = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), { threshold: 0 })
+    const observer = new IntersectionObserver(([entry]) => setShowSticky(!entry?.isIntersecting), { threshold: 0 })
     observer.observe(el)
     return () => observer.disconnect()
   }, [])

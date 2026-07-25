@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
 
 /**
  * Atomically decrements stock for a variant.
@@ -32,20 +31,3 @@ export async function restockVariant(variantId: string, quantity: number): Promi
     data: { stockQuantity: { increment: quantity } },
   })
 }
-
-/**
- * Stock display helper for product pages — maps raw quantity to the
- * three UI states we agreed on: in stock / low stock / out of stock.
- */
-export type StockDisplay =
-  | { state: 'in-stock' }
-  | { state: 'low-stock'; remaining: number }
-  | { state: 'out-of-stock' }
-
-export function getStockDisplay(stockQuantity: number, lowStockAt: number): StockDisplay {
-  if (stockQuantity <= 0) return { state: 'out-of-stock' }
-  if (stockQuantity <= lowStockAt) return { state: 'low-stock', remaining: stockQuantity }
-  return { state: 'in-stock' }
-}
-
-export { Prisma }

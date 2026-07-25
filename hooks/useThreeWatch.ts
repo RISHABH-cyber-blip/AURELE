@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 export interface WatchColorConfig {
   caseHex: string
@@ -9,16 +10,21 @@ export interface WatchColorConfig {
 
 /**
  * useThreeWatch
- * Builds a procedural watch, same as before — but now accepts a live
- * `config` (case/dial/strap colors). When config changes, materials don't
- * snap instantly — they LERP (blend) toward the new color over time in
- * the render loop, same "calm motion" principle used everywhere else in
- * the design, just applied at the material level instead of layout.
+ * Loads the real watch.glb model (from public/models/) instead of
+ * building primitives. Every mesh name is logged to the console on load
+ * — check your browser DevTools console once, note the names printed,
+ * and send them back so we can target case/dial/strap precisely for
+ * the live color configurator.
+ *
+ * Until we know the real names, this applies a best-guess color tint
+ * to ALL meshes whose name contains "case", "dial", or "strap"
+ * (case-insensitive) — common naming conventions — so the configurator
+ * still does *something* useful immediately.
  */
 export function useThreeWatch(config: WatchColorConfig) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const configRef = useRef(config)
-  configRef.current = config // always read the latest config inside the render loop
+  configRef.current = config
 
   const stateRef = useRef({
     rotY: 0.4,
@@ -52,8 +58,8 @@ export function useThreeWatch(config: WatchColorConfig) {
     const ro = new ResizeObserver(resize)
     ro.observe(canvas)
 
-    scene.add(new THREE.AmbientLight(0xfff6ea, 0.6))
-    const key = new THREE.DirectionalLight(0xfff2dd, 1.1)
+    scene.add(new THREE.AmbientLight(0xfff6ea, 0.7))
+    const key = new THREE.DirectionalLight(0xfff2dd, 1.3)
     key.position.set(4, 6, 5)
     scene.add(key)
     const rim = new THREE.DirectionalLight(0xb8935f, 0.4)
@@ -63,75 +69,52 @@ export function useThreeWatch(config: WatchColorConfig) {
     const group = new THREE.Group()
     scene.add(group)
 
-    // These three materials are the ones the configurator controls live.
-    const caseMat = new THREE.MeshStandardMaterial({
-      color: configRef.current.caseHex,
-      metalness: 0.75,
-      roughness: 0.28,
-    })
-    const dialMat = new THREE.MeshStandardMaterial({
-      color: configRef.current.dialHex,
-      metalness: 0.1,
-      roughness: 0.6,
-    })
-    const strapMat = new THREE.MeshStandardMaterial({
-      color: configRef.current.strapHex,
-      metalness: 0.2,
-      roughness: 0.7,
-    })
-    // Fixed brand-gold accent for hands/markers — stays constant so the
-    // watch always reads as "Aurele" regardless of the customer's build.
-    const accentMat = new THREE.MeshStandardMaterial({ color: 0xb8935f, metalness: 0.8, roughness: 0.25 })
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.4, roughness: 0.5 })
-
-    const bezel = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.32, 64), caseMat)
-    bezel.rotation.x = Math.PI / 2
-    group.add(bezel)
-
-    const dial = new THREE.Mesh(new THREE.CylinderGeometry(1.12, 1.12, 0.1, 64), dialMat)
-    dial.rotation.x = Math.PI / 2
-    dial.position.z = 0.17
-    group.add(dial)
-
-    for (let i = 0; i < 12; i++) {
-      const angle = (i / 12) * Math.PI * 2
-      const tick = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.02), accentMat)
-      tick.position.set(Math.sin(angle) * 0.95, Math.cos(angle) * 0.95, 0.22)
-      tick.rotation.z = -angle
-      group.add(tick)
+    // Tracks meshes we've identified as case/dial/strap, so the render
+    // loop can lerp their color live without re-traversing every frame.
+    const targetedMeshes: { case: THREE.Mesh[]; dial: THREE.Mesh[]; strap: THREE.Mesh[] } = {
+      case: [], dial: [], strap: [],
     }
 
-    const hourHand = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.55, 0.03), darkMat)
-    hourHand.position.set(0, 0.25, 0.24)
-    hourHand.rotation.z = -Math.PI / 3
-    group.add(hourHand)
+    const loader = new GLTFLoader()
+    loader.load(
+      '/models/watch.glb',
+      (gltf: { scene: THREE.Group }) => {
+        const model = gltf.scene
 
-    const minuteHand = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.85, 0.03), darkMat)
-    minuteHand.position.set(0, 0.4, 0.25)
-    minuteHand.rotation.z = -Math.PI / 1.6
-    group.add(minuteHand)
+        // Auto-center and auto-scale, same approach as the reference
+        // shoe project's README documents for swapping in real models.
+        const box = new THREE.Box3().setFromObject(model)
+        const size = box.getSize(new THREE.Vector3()).length()
+        const center = box.getCenter(new THREE.Vector3())
+        model.position.x -= center.x
+        model.position.y -= center.y
+        model.position.z -= center.z
+        const targetSize = 2.6
+        model.scale.setScalar(targetSize / size)
 
-    const secondHand = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.95, 0.03), accentMat)
-    const secondPivot = new THREE.Group()
-    secondPivot.add(secondHand)
-    secondHand.position.set(0, 0.45, 0)
-    secondPivot.position.z = 0.26
-    group.add(secondPivot)
+        console.log('--- Aurele: watch.glb mesh names (send these back for precise color-targeting) ---')
+        model.traverse((child: THREE.Object3D) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh
+            mesh.castShadow = true
+            mesh.receiveShadow = true
+            console.log(' •', mesh.name || '(unnamed mesh)')
 
-    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.1, 16), accentMat)
-    pin.rotation.x = Math.PI / 2
-    pin.position.z = 0.27
-    group.add(pin)
+            const nameLower = mesh.name.toLowerCase()
+            if (nameLower.includes('case') || nameLower.includes('bezel')) targetedMeshes.case.push(mesh)
+            else if (nameLower.includes('dial') || nameLower.includes('face')) targetedMeshes.dial.push(mesh)
+            else if (nameLower.includes('strap') || nameLower.includes('band')) targetedMeshes.strap.push(mesh)
+          }
+        })
+        console.log('--- end mesh list ---')
 
-    ;[1, -1].forEach((dir) => {
-      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.1, 0.14), strapMat)
-      strap.position.set(0, dir * 1.55, -0.02)
-      group.add(strap)
-    })
+        group.add(model)
+      },
+      undefined,
+      (error: ErrorEvent | Error) => console.error('Error loading watch.glb — check the file exists at public/models/watch.glb:', error)
+    )
 
-    // Reduce the global scale so the watch fits better in smaller canvases
-    // (homepage hero and customizer). Tune this value to taste.
-    group.scale.setScalar(0.75)
+    group.scale.setScalar(1.15)
 
     /* ── Interaction ── */
     const s = stateRef.current
@@ -158,12 +141,7 @@ export function useThreeWatch(config: WatchColorConfig) {
     window.addEventListener('pointerup', onUp)
     window.addEventListener('pointermove', onMove)
 
-    // Reused each frame instead of allocating a new THREE.Color 3x per
-    // frame — small perf detail, matters once this runs for minutes.
-    const tmpCaseTarget = new THREE.Color()
-    const tmpDialTarget = new THREE.Color()
-    const tmpStrapTarget = new THREE.Color()
-
+    const tmpColor = new THREE.Color()
     const clock = new THREE.Clock()
     let raf: number
 
@@ -176,18 +154,17 @@ export function useThreeWatch(config: WatchColorConfig) {
       group.rotation.x += (s.rotX - group.rotation.x) * 0.08
       group.position.y = Math.sin(t * 1.1) * 0.08
 
-      secondPivot.rotation.z = -((Date.now() / 1000) % 60) * ((Math.PI * 2) / 60)
-
-      // Smoothly blend toward whatever the configurator's latest colors
-      // are — this is what makes swapping options feel premium instead
-      // of a jarring instant color-swap.
       const cfg = configRef.current
-      tmpCaseTarget.set(cfg.caseHex)
-      tmpDialTarget.set(cfg.dialHex)
-      tmpStrapTarget.set(cfg.strapHex)
-      caseMat.color.lerp(tmpCaseTarget, 0.06)
-      dialMat.color.lerp(tmpDialTarget, 0.06)
-      strapMat.color.lerp(tmpStrapTarget, 0.06)
+      const applyColor = (meshes: THREE.Mesh[], hex: string) => {
+        tmpColor.set(hex)
+        meshes.forEach((mesh) => {
+          const mat = mesh.material as THREE.MeshStandardMaterial
+          if (mat?.color) mat.color.lerp(tmpColor, 0.06)
+        })
+      }
+      applyColor(targetedMeshes.case, cfg.caseHex)
+      applyColor(targetedMeshes.dial, cfg.dialHex)
+      applyColor(targetedMeshes.strap, cfg.strapHex)
 
       renderer.render(scene, camera)
     }
@@ -201,7 +178,7 @@ export function useThreeWatch(config: WatchColorConfig) {
       window.removeEventListener('pointermove', onMove)
       renderer.dispose()
     }
-  }, []) // scene builds once — config changes are read live via configRef, not rebuilt
+  }, [])
 
   return canvasRef
 }
