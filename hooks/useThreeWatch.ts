@@ -129,7 +129,9 @@ export function useThreeWatch(config: WatchColorConfig) {
       group.add(strap)
     })
 
-    group.scale.setScalar(1.15)
+    // Reduce the global scale so the watch fits better in smaller canvases
+    // (homepage hero and customizer). Tune this value to taste.
+    group.scale.setScalar(0.75)
 
     /* ── Interaction ── */
     const s = stateRef.current

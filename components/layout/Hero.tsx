@@ -57,7 +57,7 @@ export default function Hero() {
         initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative order-1 md:order-2 h-[380px] md:h-[560px] flex items-center justify-center"
+        className="relative order-1 md:order-2 h-[320px] md:h-[480px] flex items-center justify-center"
       >
         <Suspense fallback={<div className="text-ink-faint text-sm">Loading…</div>}>
           <WatchCanvas />

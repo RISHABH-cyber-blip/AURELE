@@ -27,7 +27,7 @@ export default function CustomizePage() {
     <>
       <Navbar />
       <main className="min-h-screen grid md:grid-cols-2 items-center px-6 md:px-16 pt-32 pb-20 gap-12">
-        <div className="relative order-1 h-[380px] md:h-[600px] flex items-center justify-center md:sticky md:top-32">
+        <div className="relative order-1 h-[320px] md:h-[520px] flex items-center justify-center md:sticky md:top-32">
           <Suspense fallback={<div className="text-ink-faint text-sm">Loading…</div>}>
             <WatchCanvas config={colorConfig} />
           </Suspense>

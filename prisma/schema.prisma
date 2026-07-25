@@ -85,6 +85,7 @@ model ProductVariant {
   status         VariantStatus @default(ACTIVE)
 
   orderItems     OrderItem[]
+  restockNotifications RestockNotification[]
 
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
