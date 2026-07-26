@@ -21,7 +21,9 @@ export default function PromoBanner() {
     return () => clearInterval(timer)
   }, [paused, next])
 
-  const slide = PROMO_BANNERS[index]
+  if (PROMO_BANNERS.length === 0) return null
+  const slide = PROMO_BANNERS[index] ?? PROMO_BANNERS[0]
+  if (!slide) return null
 
   return (
     <section

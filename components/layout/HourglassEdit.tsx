@@ -1,4 +1,4 @@
-import { getActiveDeals } from '@/lib/deals'
+import { getActiveDeals } from '@/lib/deal'
 import CountdownTimer from '@/components/product/CountdownTimer'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -15,7 +15,7 @@ export default async function HourglassEdit() {
       <h2 className="font-display text-4xl md:text-5xl font-light text-ink mb-12">The Hourglass Edit</h2>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {deals.map((deal) => {
+        {deals.map((deal: any) => {
           const product = deal.product
           const originalPrice = Number(product.basePrice)
           const dealPrice = originalPrice * (1 - deal.discountPct / 100)
@@ -46,8 +46,9 @@ export default async function HourglassEdit() {
               </div>
             </Link>
           )
+          
         })}
       </div>
     </section>
   )
-}s
+}
