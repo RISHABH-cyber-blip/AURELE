@@ -176,6 +176,12 @@ model CustomBuildRequest {
   createdAt      DateTime @default(now())
 }
 
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
 model RestockNotification {
   id        String         @id @default(cuid())
   email     String
