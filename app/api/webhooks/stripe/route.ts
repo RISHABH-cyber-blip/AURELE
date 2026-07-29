@@ -2,13 +2,12 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { decrementStock } from '@/lib/inventory'
-import Stripe from 'stripe'
 
 export async function POST(request: Request) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')!
 
-  let event: Stripe.Event
+  let event: { type: string; data: { object: any } }
   try {
     // Verifies this request genuinely came from Stripe — not a forged
     // request pretending payment succeeded.
@@ -19,7 +18,7 @@ export async function POST(request: Request) {
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
+    const session = event.data.object as { metadata?: { orderId?: string }; payment_intent?: string }
     const orderId = session.metadata?.orderId
 
     if (orderId) {
