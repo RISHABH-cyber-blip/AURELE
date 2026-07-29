@@ -6,15 +6,23 @@ import Link from 'next/link'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { NAV_LINKS } from '@/data'
 import { useCartStore } from '@/store/cart-store'
+import { createSupabaseBrowserClient } from '@/lib/supabase'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const totalQty = useCartStore((s) => s.totalQty())
 
-  // Cart is persisted to localStorage, which doesn't exist during server
-  // rendering — this avoids a mismatch flash between server and client.
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true)
+    const supabase = createSupabaseBrowserClient()
+    supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -24,7 +32,6 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      suppressHydrationWarning
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -48,20 +55,23 @@ export default function Navbar() {
 
       <div className="flex items-center gap-5 text-ink">
         <button aria-label="Search" className="hover:text-gold transition-calm">
-          {mounted ? (
-            <Search size={19} strokeWidth={1.5} />
-          ) : (
-            <span className="inline-block w-[19px] h-[19px]" aria-hidden />
-          )}
+          <Search size={19} strokeWidth={1.5} />
         </button>
-        <Link href="/account" aria-label="Account" className="hidden sm:block hover:text-gold transition-calm">
-          {mounted ? <User size={19} strokeWidth={1.5} /> : <span className="inline-block w-[19px] h-[19px]" aria-hidden />}
+        <Link
+          href={mounted && isLoggedIn ? '/account' : '/login'}
+          aria-label="Account"
+          className="hidden sm:block hover:text-gold transition-calm relative"
+        >
+          <User size={19} strokeWidth={1.5} />
+          {mounted && isLoggedIn && (
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gold" />
+          )}
         </Link>
         <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-calm">
-          {mounted ? <Heart size={19} strokeWidth={1.5} /> : <span className="inline-block w-[19px] h-[19px]" aria-hidden />}
+          <Heart size={19} strokeWidth={1.5} />
         </Link>
         <Link href="/cart" aria-label="Cart" className="relative hover:text-gold transition-calm">
-          {mounted ? <ShoppingBag size={19} strokeWidth={1.5} /> : <span className="inline-block w-[19px] h-[19px]" aria-hidden />}
+          <ShoppingBag size={19} strokeWidth={1.5} />
           {mounted && totalQty > 0 && (
             <span className="absolute -top-2 -right-2 w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-gold text-ink">
               {totalQty}
