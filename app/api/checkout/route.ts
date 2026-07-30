@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { razorpay } from '@/lib/razorpay'
+import { getCurrentUser } from '@/lib/auth'
 
 interface CheckoutItem {
   variantId: string
@@ -15,8 +16,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cart is empty.' }, { status: 400 })
     }
 
-    // Real price + stock come from the database — never from the browser.
-    // Stops someone editing the request to pay less than the real price.
+    // NEW: check if someone's actually logged in — if so, attach the
+    // order to their real account instead of leaving it as a guest order.
+    const currentUser = await getCurrentUser()
+
     const variants = await prisma.productVariant.findMany({
       where: { id: { in: items.map((i) => i.variantId) } },
       include: { product: true },
@@ -42,19 +45,18 @@ export async function POST(request: Request) {
       orderItemsData.push({ variantId: variant.id, quantity: item.qty, priceAtPurchase: price })
     }
 
-    // Create our own order record as PENDING first
     const order = await prisma.order.create({
       data: {
-        guestEmail: guestEmail || null,
+        userId: currentUser?.id ?? null, // NEW: real link to the account
+        guestEmail: currentUser ? null : guestEmail || null,
         status: 'PENDING',
         subtotal,
         total: subtotal,
-        currency: 'INR', // demo simplification — see note in chat about Razorpay's default test currency
+        currency: 'INR',
         items: { create: orderItemsData },
       },
     })
 
-    // Razorpay wants the amount in the smallest currency unit (paise for INR)
     const razorpayOrder = await razorpay.orders.create({
       amount: Math.round(subtotal * 100),
       currency: 'INR',
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
 
     await prisma.order.update({
       where: { id: order.id },
-      data: { stripeSessionId: razorpayOrder.id }, // reusing this field to store Razorpay's order id
+      data: { stripeSessionId: razorpayOrder.id },
     })
 
     return NextResponse.json({
