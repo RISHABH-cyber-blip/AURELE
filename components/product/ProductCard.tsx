@@ -1,29 +1,31 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice, formatRelativeTime } from '@/lib/utils'
+import WishlistButton from '@/components/product/WishlistButton'
 
 interface Props {
   product: {
+    id: string
     slug: string
     name: string
     basePrice: any
     createdAt?: string | Date
     brand: { name: string }
     images: { url: string; altText: string | null }[]
-    variants?: { dialColor: string | null; stockQuantity: number }[]
+    variants: { dialColor: string | null; stockQuantity: number }[]
   }
   showNewBadge?: boolean
 }
 
 export default function ProductCard({ product, showNewBadge = false }: Props) {
-  const variants = product.variants ?? []
-  const totalStock = variants.reduce((sum, v) => sum + v.stockQuantity, 0)
-  const colorCount = new Set(variants.map((v) => v.dialColor).filter(Boolean)).size
+  const totalStock = product.variants.reduce((sum, v) => sum + v.stockQuantity, 0)
+  const colorCount = new Set(product.variants.map((v) => v.dialColor).filter(Boolean)).size
   const price = Number(product.basePrice)
 
   return (
     <Link href={`/product/${product.slug}`} className="group block">
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-cream-soft mb-4">
+        <WishlistButton productId={product.id} />
         {product.images[0] && (
           <Image
             src={product.images[0].url}
@@ -39,7 +41,7 @@ export default function ProductCard({ product, showNewBadge = false }: Props) {
           </span>
         )}
         {showNewBadge && product.createdAt && (
-          <span className="absolute top-3 right-3 text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full bg-cream/90 text-ink-soft border border-cream-deep/40">
+          <span className="absolute bottom-3 right-3 text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full bg-cream/90 text-ink-soft backdrop-blur">
             {formatRelativeTime(new Date(product.createdAt))}
           </span>
         )}
