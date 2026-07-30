@@ -36,7 +36,7 @@ export default function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 transition-calm ${
-        scrolled ? 'bg-cream/90 backdrop-blur-md border-b border-cream-deep' : 'border-b border-transparent'
+        scrolled ? 'bg-cream/90 border-b border-cream-deep shadow-sm' : 'border-b border-transparent'
       }`}
     >
       <Link href="/" className="font-display text-2xl md:text-3xl tracking-[3px] text-ink font-light">

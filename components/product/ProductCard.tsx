@@ -39,7 +39,7 @@ export default function ProductCard({ product, showNewBadge = false }: Props) {
           </span>
         )}
         {showNewBadge && product.createdAt && (
-          <span className="absolute top-3 right-3 text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full bg-cream/90 text-ink-soft backdrop-blur">
+          <span className="absolute top-3 right-3 text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full bg-cream/90 text-ink-soft border border-cream-deep/40">
             {formatRelativeTime(new Date(product.createdAt))}
           </span>
         )}

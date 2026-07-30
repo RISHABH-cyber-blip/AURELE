@@ -54,7 +54,7 @@ export default function ZoomImage({ src, alt }: Props) {
         </div>
       )}
 
-      <span className="absolute bottom-3 right-3 text-[10px] tracking-wide uppercase text-ink-faint bg-cream/80 backdrop-blur px-2.5 py-1 rounded-full hidden md:block">
+      <span className="absolute bottom-3 right-3 text-[10px] tracking-wide uppercase text-ink-faint bg-cream/80 px-2.5 py-1 rounded-full hidden md:block">
         Hover to zoom
       </span>
     </div>

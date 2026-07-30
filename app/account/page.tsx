@@ -2,10 +2,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
-import LogoutButton from '@/components/account/LogoutButton'
 import { getCurrentUser } from '@/lib/auth'
 import { getAccountStats, getOrderHistory } from '@/lib/account'
 import { formatPrice } from '@/lib/utils'
+import LogoutButton from '@/components/account/LogOutButton'
 
 export default async function AccountPage() {
   const user = await getCurrentUser()
