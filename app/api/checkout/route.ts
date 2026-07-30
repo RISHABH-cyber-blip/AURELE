@@ -10,14 +10,12 @@ interface CheckoutItem {
 
 export async function POST(request: Request) {
   try {
-    const { items, guestEmail }: { items: CheckoutItem[]; guestEmail?: string } = await request.json()
+    const { items, guestEmail, addressId }: { items: CheckoutItem[]; guestEmail?: string; addressId?: string } = await request.json()
 
     if (!items?.length) {
       return NextResponse.json({ error: 'Cart is empty.' }, { status: 400 })
     }
 
-    // NEW: check if someone's actually logged in — if so, attach the
-    // order to their real account instead of leaving it as a guest order.
     const currentUser = await getCurrentUser()
 
     const variants = await prisma.productVariant.findMany({
@@ -30,16 +28,10 @@ export async function POST(request: Request) {
 
     for (const item of items) {
       const variant = variants.find((v) => v.id === item.variantId)
-      if (!variant) {
-        return NextResponse.json({ error: 'Item not found.' }, { status: 400 })
-      }
+      if (!variant) return NextResponse.json({ error: 'Item not found.' }, { status: 400 })
       if (variant.stockQuantity < item.qty) {
-        return NextResponse.json(
-          { error: `"${variant.product.name}" only has ${variant.stockQuantity} left in stock.` },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: `"${variant.product.name}" only has ${variant.stockQuantity} left in stock.` }, { status: 400 })
       }
-
       const price = variant.priceOverride ? Number(variant.priceOverride) : Number(variant.product.basePrice)
       subtotal += price * item.qty
       orderItemsData.push({ variantId: variant.id, quantity: item.qty, priceAtPurchase: price })
@@ -47,8 +39,9 @@ export async function POST(request: Request) {
 
     const order = await prisma.order.create({
       data: {
-        userId: currentUser?.id ?? null, // NEW: real link to the account
+        userId: currentUser?.id ?? null,
         guestEmail: currentUser ? null : guestEmail || null,
+        addressId: currentUser && addressId ? addressId : null,
         status: 'PENDING',
         subtotal,
         total: subtotal,
@@ -64,10 +57,7 @@ export async function POST(request: Request) {
       notes: { internalOrderId: order.id },
     })
 
-    await prisma.order.update({
-      where: { id: order.id },
-      data: { stripeSessionId: razorpayOrder.id },
-    })
+    await prisma.order.update({ where: { id: order.id }, data: { stripeSessionId: razorpayOrder.id } })
 
     return NextResponse.json({
       razorpayOrderId: razorpayOrder.id,

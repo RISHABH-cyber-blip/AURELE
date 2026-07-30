@@ -6,10 +6,6 @@ import { decrementStock } from '@/lib/inventory'
 export async function POST(request: Request) {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, internalOrderId } = await request.json()
 
-  // Razorpay signs every successful payment with your secret key. Recomputing
-  // that signature ourselves and comparing is what proves this request
-  // genuinely came from a real completed payment — not someone just calling
-  // this endpoint claiming they paid.
   const expectedSignature = crypto
     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -28,7 +24,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Order not found or already processed.' }, { status: 400 })
   }
 
-  // Atomic decrement — same safety guarantee as before, prevents overselling
   for (const item of order.items) {
     const ok = await decrementStock(item.variantId, item.quantity)
     if (!ok) {
@@ -40,6 +35,15 @@ export async function POST(request: Request) {
     where: { id: order.id },
     data: { status: 'PAID', stripePaymentIntentId: razorpay_payment_id },
   })
+
+  // NEW: 1 loyalty point per ₹100 spent — only for logged-in orders
+  if (order.userId) {
+    const pointsEarned = Math.floor(Number(order.total) / 100)
+    await prisma.user.update({
+      where: { id: order.userId },
+      data: { loyaltyPoints: { increment: pointsEarned } },
+    })
+  }
 
   return NextResponse.json({ success: true })
 }

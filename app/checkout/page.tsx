@@ -13,15 +13,28 @@ declare global {
   }
 }
 
+interface Address {
+  id: string; fullName: string; line1: string; city: string; postalCode: string; isDefault: boolean
+}
+
 export default function CheckoutPage() {
   const { items, totalPrice } = useCartStore()
   const [email, setEmail] = useState('')
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true)
+    fetch('/api/account/addresses').then((r) => r.json()).then((d) => {
+      setAddresses(d.addresses)
+      const def = d.addresses.find((a: Address) => a.isDefault) ?? d.addresses[0]
+      if (def) setSelectedAddressId(def.id)
+    })
+  }, [])
 
   async function handlePay() {
     setLoading(true)
@@ -33,6 +46,7 @@ export default function CheckoutPage() {
       body: JSON.stringify({
         items: items.map((i) => ({ variantId: i.variantId, qty: i.qty })),
         guestEmail: email,
+        addressId: selectedAddressId,
       }),
     })
 
@@ -52,7 +66,7 @@ export default function CheckoutPage() {
       name: 'Aurele',
       description: 'Order Payment',
       prefill: { email },
-      theme: { color: '#B8935F' }, // matches our gold accent
+      theme: { color: '#B8935F' },
       handler: async function (response: any) {
         const verifyRes = await fetch('/api/verify-payment', {
           method: 'POST',
@@ -64,16 +78,13 @@ export default function CheckoutPage() {
             internalOrderId: data.internalOrderId,
           }),
         })
-
         if (verifyRes.ok) {
           router.push('/checkout/success')
         } else {
           setError('Payment succeeded but verification failed — contact support.')
         }
       },
-      modal: {
-        ondismiss: () => setLoading(false),
-      },
+      modal: { ondismiss: () => setLoading(false) },
     }
 
     const razorpayInstance = new window.Razorpay(razorpayOptions)
@@ -95,9 +106,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-      {/* Razorpay's checkout widget script */}
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-
       <Navbar />
       <main className="px-6 md:px-16 pt-32 pb-24 max-w-2xl mx-auto">
         <p className="font-mono text-xs tracking-[4px] uppercase text-gold mb-3">Checkout</p>
@@ -106,9 +115,7 @@ export default function CheckoutPage() {
         <div className="bg-cream-soft rounded-2xl p-7 mb-8">
           {items.map((item) => (
             <div key={item.variantId} className="flex justify-between text-sm py-2">
-              <span className="text-ink-soft">
-                {item.name} × {item.qty}
-              </span>
+              <span className="text-ink-soft">{item.name} × {item.qty}</span>
               <span className="text-ink">{formatPrice(item.price * item.qty, item.currency)}</span>
             </div>
           ))}
@@ -118,14 +125,24 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <label className="block text-xs tracking-wide uppercase text-ink-faint mb-2">
-          Email for order confirmation
-        </label>
+        {addresses.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-xs tracking-wide uppercase text-ink-faint mb-2">Shipping Address</label>
+            <select
+              value={selectedAddressId ?? ''}
+              onChange={(e) => setSelectedAddressId(e.target.value)}
+              className="w-full bg-cream-soft border border-cream-deep rounded-lg px-4 py-3 text-sm text-ink focus:outline-none focus:border-gold"
+            >
+              {addresses.map((a) => (
+                <option key={a.id} value={a.id}>{a.fullName} — {a.line1}, {a.city} {a.postalCode}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <label className="block text-xs tracking-wide uppercase text-ink-faint mb-2">Email for order confirmation</label>
         <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           className="w-full bg-cream-soft border border-cream-deep rounded-lg px-4 py-3 text-sm text-ink mb-6 focus:outline-none focus:border-gold"
         />
