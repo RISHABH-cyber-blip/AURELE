@@ -28,7 +28,13 @@ export default function RecentlyViewedStrip({ excludeSlug }: { excludeSlug: stri
             className="flex-shrink-0 w-40 group"
           >
             <div className="relative aspect-square rounded-xl overflow-hidden bg-cream-soft mb-2">
-              <Image src={item.image} alt={item.name} fill className="object-cover transition-calm group-hover:scale-105" sizes="160px" />
+              <Image
+                src={item.image || '/images/placeholder-watch.svg'}
+                alt={item.name}
+                fill
+                className="object-cover transition-calm group-hover:scale-105"
+                sizes="160px"
+              />
             </div>
             <p className="text-xs text-ink-soft truncate group-hover:text-gold transition-calm">{item.name}</p>
             <p className="text-xs text-ink-faint">{formatPrice(item.price, item.currency)}</p>

@@ -12,11 +12,27 @@ export interface RecentlyViewedItem {
   image: string
 }
 
+function normalizeImage(image?: string | null) {
+  if (typeof image !== 'string') return '/images/placeholder-watch.svg'
+  const trimmed = image.trim()
+  return trimmed ? trimmed : '/images/placeholder-watch.svg'
+}
+
 export function getRecentlyViewed(): RecentlyViewedItem[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = localStorage.getItem(KEY)
-    return raw ? JSON.parse(raw) : []
+    if (!raw) return []
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+
+    return parsed
+      .filter((value): value is RecentlyViewedItem => Boolean(value && typeof value === 'object'))
+      .map((item) => ({
+        ...item,
+        image: normalizeImage(item.image),
+      }))
   } catch {
     return []
   }
@@ -25,6 +41,6 @@ export function getRecentlyViewed(): RecentlyViewedItem[] {
 export function addRecentlyViewed(item: RecentlyViewedItem) {
   if (typeof window === 'undefined') return
   const current = getRecentlyViewed().filter((i) => i.slug !== item.slug)
-  const next = [item, ...current].slice(0, MAX_ITEMS)
+  const next = [{ ...item, image: normalizeImage(item.image) }, ...current].slice(0, MAX_ITEMS)
   localStorage.setItem(KEY, JSON.stringify(next))
 }

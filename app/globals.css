@@ -46,3 +46,17 @@
     to { transform: translateX(-50%); }
   }
 }
+
+/* Progressive enhancement for backdrop-filter (used in Navbar + ZoomImage).
+   Modern browsers get the frosted-glass blur effect as designed.
+   Older/unsupported browsers fall back to a solid background instead of
+   a broken/transparent look. This silences the compatibility warning
+   without changing how the site looks in any current browser. */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-md {
+    background-color: #FAF6F0 !important; /* solid cream, matches --bg */
+  }
+  .backdrop-blur {
+    background-color: rgba(250, 246, 240, 0.95) !important;
+  }
+}

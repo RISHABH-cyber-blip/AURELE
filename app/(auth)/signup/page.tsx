@@ -43,13 +43,19 @@ export default function SignupPage() {
     })
   }
 
-  if (checkEmail) {
+if (checkEmail) {
     return (
       <>
         <Navbar />
         <main className="px-6 pt-40 pb-24 max-w-md mx-auto text-center">
           <p className="font-display text-2xl font-light text-ink mb-3">Check your inbox</p>
-          <p className="text-sm text-ink-soft">We sent a confirmation link to {email}.</p>
+          <p className="text-sm text-ink-soft mb-4">We sent a confirmation link to {email}.</p>
+          {process.env.NODE_ENV === 'development' && (
+            <p className="text-xs text-gold bg-gold/10 rounded-lg px-4 py-3 max-w-sm mx-auto">
+              Dev note: emails from onboarding@resend.dev may not reach your inbox reliably.
+              Check Resend → Logs and use the confirmation link directly if it doesn't arrive.
+            </p>
+          )}
         </main>
       </>
     )
