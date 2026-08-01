@@ -40,14 +40,36 @@ export default function AddressManager() {
     load()
   }
 
-  async function handleDelete(id: string) {
-    await fetch(`/api/account/addresses/${id}`, { method: 'DELETE' })
-    load()
+async function handleDelete(id: string) {
+    try {
+      const res = await fetch(`/api/account/addresses/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      console.log('Delete response:', res.status, data)
+      if (!res.ok) {
+        alert(`Delete failed: ${data.error ?? 'Unknown error'}`)
+        return
+      }
+      load()
+    } catch (err) {
+      console.error('Delete request threw an error:', err)
+      alert('Delete request failed — check console for details.')
+    }
   }
 
   async function handleSetDefault(id: string) {
-    await fetch(`/api/account/addresses/${id}`, { method: 'PATCH' })
-    load()
+    try {
+      const res = await fetch(`/api/account/addresses/${id}`, { method: 'PATCH' })
+      const data = await res.json()
+      console.log('Set default response:', res.status, data)
+      if (!res.ok) {
+        alert(`Set default failed: ${data.error ?? 'Unknown error'}`)
+        return
+      }
+      load()
+    } catch (err) {
+      console.error('Set default request threw an error:', err)
+      alert('Set default request failed — check console for details.')
+    }
   }
 
   if (loading) return <p className="text-sm text-ink-faint">Loading…</p>
