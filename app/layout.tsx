@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter, Space_Mono } from 'next/font/google'
+import CookieBanner from '@/components/layout/CookieBanner'
+import { getCookieConsent } from '@/lib/cookies'
 import './globals.css'
 
-// Modern thin serif for headings — matches the "fashion-editorial" direction
 const fraunces = Fraunces({
   subsets: ['latin'],
   weight: ['300', '400', '500'],
@@ -11,7 +12,6 @@ const fraunces = Fraunces({
   display: 'swap',
 })
 
-// Clean sans for body copy
 const inter = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
@@ -19,7 +19,6 @@ const inter = Inter({
   display: 'swap',
 })
 
-// Monospace for SKUs / labels / prices in the "shop by style" filter chips
 const spaceMono = Space_Mono({
   subsets: ['latin'],
   weight: ['400', '700'],
@@ -32,18 +31,20 @@ export const metadata: Metadata = {
     default: 'Aurele — Timeless Pieces, Honestly Sourced',
     template: '%s | Aurele',
   },
-  description:
-    'Premium watches and fashion from brands worldwide — authenticated, curated, delivered.',
+  description: 'Premium watches and fashion from brands worldwide — authenticated, curated, delivered.',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Read the cookie consent decision server-side — this is what makes
+  // it genuinely usable "everywhere," not just a client-side flag.
+  const consent = await getCookieConsent()
+
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${fraunces.variable} ${inter.variable} ${spaceMono.variable}`}
-    >
-      <body suppressHydrationWarning className="bg-cream text-ink font-body antialiased">{children}</body>
+    <html lang="en" className={`${fraunces.variable} ${inter.variable} ${spaceMono.variable}`}>
+      <body className="bg-cream text-ink font-body antialiased">
+        {children}
+        <CookieBanner initialConsent={consent} />
+      </body>
     </html>
   )
 }
