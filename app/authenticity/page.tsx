@@ -56,9 +56,13 @@ function AuthenticitySeal() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setVisible(true)
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) setVisible(true)
+      })
     }, { threshold: 0.4 })
+
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
