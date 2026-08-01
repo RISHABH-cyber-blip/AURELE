@@ -2,36 +2,69 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
-import { getCurrentUser } from '@/lib/auth'
-import { getAccountStats, getOrderHistory } from '@/lib/account'
-import { formatPrice } from '@/lib/utils'
 import LogoutButton from '@/components/account/LogOutButton'
+import { getCurrentUser } from '@/lib/auth'
+import { getAccountStats, getOrderHistory, getLoyaltyTier } from '@/lib/account'
+import { formatPrice } from '@/lib/utils'
+
+type AccountUser = {
+  id: string
+  email: string
+  supabaseId: string
+  name: string | null
+  createdAt: Date
+  avatarUrl?: string | null
+  loyaltyPoints: number
+}
 
 export default async function AccountPage() {
-  const user = await getCurrentUser()
+  const user = (await getCurrentUser()) as AccountUser | null
   if (!user) redirect('/login')
 
-  const [stats, orders] = await Promise.all([
-    getAccountStats(user.id),
-    getOrderHistory(user.id),
-  ])
-
+  const [stats, orders] = await Promise.all([getAccountStats(user.id), getOrderHistory(user.id)])
+  const tier = getLoyaltyTier(stats.totalSpent)
   const memberSince = new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const initials = (user.name?.[0] ?? user.email.charAt(0)).toUpperCase()
 
   return (
     <>
       <Navbar />
       <main className="px-6 md:px-16 pt-32 pb-24 max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-12">
-          <div>
-            <p className="font-mono text-xs tracking-[4px] uppercase text-gold mb-3">Your Account</p>
-            <h1 className="font-display text-4xl font-light text-ink">{user.name || user.email}</h1>
-            <p className="text-sm text-ink-faint mt-1">Member since {memberSince}</p>
+        <div className="flex items-start justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-cream-soft overflow-hidden flex items-center justify-center text-lg text-ink-faint flex-shrink-0">
+              {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" /> : initials}
+            </div>
+            <div>
+              <p className="font-mono text-xs tracking-[4px] uppercase text-gold mb-1">Your Account</p>
+              <h1 className="font-display text-3xl font-light text-ink">{user.name || user.email}</h1>
+              <p className="text-sm text-ink-faint mt-1">Member since {memberSince}</p>
+            </div>
           </div>
           <LogoutButton />
         </div>
 
-        {/* Real stats, computed from actual orders — not placeholder numbers */}
+        {/* Quick links row */}
+        <div className="flex flex-wrap gap-3 mb-12">
+          <Link href="/account/profile" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Edit Profile</Link>
+          <Link href="/account/addresses" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Saved Addresses</Link>
+          <Link href="/wishlist" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Wishlist</Link>
+          <Link href="/support" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Support</Link>
+        </div>
+
+        {/* Loyalty tier card — real, computed from real spend */}
+        <div className="bg-ink rounded-2xl p-7 mb-8 flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[10px] tracking-[3px] uppercase text-gold mb-1">Aurele Circle</p>
+            <p className="font-display text-2xl font-light text-cream">{tier.name} Member</p>
+            <p className="text-xs text-cream/60 mt-1">{stats.totalOrders > 0 ? `${formatPrice(stats.totalSpent)} lifetime` : 'Place your first order to begin earning'}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-display text-2xl text-gold">{user.loyaltyPoints}</p>
+            <p className="text-[10px] tracking-wide uppercase text-cream/60">Points</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 gap-4 mb-16">
           <div className="bg-cream-soft rounded-2xl p-6 text-center">
             <p className="font-display text-3xl text-ink mb-1">{stats.totalOrders}</p>
@@ -75,9 +108,7 @@ export default async function AccountPage() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm text-ink">{formatPrice(Number(order.total), order.currency)}</p>
-                  <span className="text-[10px] tracking-wide uppercase px-2 py-0.5 rounded-full bg-gold/10 text-gold">
-                    {order.status}
-                  </span>
+                  <span className="text-[10px] tracking-wide uppercase px-2 py-0.5 rounded-full bg-gold/10 text-gold">{order.status}</span>
                 </div>
               </div>
             ))}
