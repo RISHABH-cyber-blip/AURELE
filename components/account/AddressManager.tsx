@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import AddressAutocomplete from '@/components/account/AddressAutocomplete'
 
 interface Address {
   id: string; fullName: string; line1: string; line2?: string | null
@@ -8,10 +9,12 @@ interface Address {
   phone?: string | null; isDefault: boolean
 }
 
+const emptyForm = { fullName: '', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'India', phone: '', isDefault: false }
+
 export default function AddressManager() {
   const [addresses, setAddresses] = useState<Address[]>([])
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ fullName: '', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'India', phone: '', isDefault: false })
+  const [form, setForm] = useState(emptyForm)
   const [loading, setLoading] = useState(true)
 
   function load() {
@@ -19,9 +22,20 @@ export default function AddressManager() {
   }
   useEffect(load, [])
 
+  function handleAddressSelected(result: { line1: string; city: string; state: string; postalCode: string; country: string }) {
+    setForm((f) => ({
+      ...f,
+      line1: result.line1 || f.line1,
+      city: result.city,
+      state: result.state,
+      postalCode: result.postalCode,
+      country: result.country || f.country,
+    }))
+  }
+
   async function handleAdd() {
     await fetch('/api/account/addresses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-    setForm({ fullName: '', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'India', phone: '', isDefault: false })
+    setForm(emptyForm)
     setShowForm(false)
     load()
   }
@@ -59,10 +73,19 @@ export default function AddressManager() {
       </div>
 
       {showForm ? (
-        <div className="bg-cream-soft rounded-xl p-6 space-y-3">
+        <div className="bg-cream-soft rounded-xl p-6 space-y-4">
+          <div>
+            <label className="block text-xs text-ink-faint uppercase tracking-wide mb-2">Find Your Address</label>
+            <AddressAutocomplete onSelect={handleAddressSelected} />
+            <p className="text-xs text-ink-faint mt-1.5">
+              Search by area, then refine the exact house/flat number below.
+            </p>
+          </div>
+
           <input placeholder="Full Name" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} className="w-full bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
-          <input placeholder="Address Line 1" value={form.line1} onChange={(e) => setForm({ ...form, line1: e.target.value })} className="w-full bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
+          <input placeholder="House / Flat / Street (Address Line 1)" value={form.line1} onChange={(e) => setForm({ ...form, line1: e.target.value })} className="w-full bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
           <input placeholder="Address Line 2 (optional)" value={form.line2} onChange={(e) => setForm({ ...form, line2: e.target.value })} className="w-full bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
+
           <div className="grid grid-cols-2 gap-3">
             <input placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
             <input placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} className="bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
@@ -72,13 +95,15 @@ export default function AddressManager() {
             <input placeholder="Country" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className="bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
           </div>
           <input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full bg-cream border border-cream-deep rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold" />
+
           <label className="flex items-center gap-2 text-sm text-ink-soft">
             <input type="checkbox" checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} className="accent-gold" />
             Set as default
           </label>
+
           <div className="flex gap-3 pt-2">
             <button onClick={handleAdd} className="px-6 py-2.5 rounded-full text-sm bg-ink text-cream transition-calm hover:opacity-85">Save Address</button>
-            <button onClick={() => setShowForm(false)} className="px-6 py-2.5 rounded-full text-sm text-ink-faint hover:text-ink transition-calm">Cancel</button>
+            <button onClick={() => { setShowForm(false); setForm(emptyForm) }} className="px-6 py-2.5 rounded-full text-sm text-ink-faint hover:text-ink transition-calm">Cancel</button>
           </div>
         </div>
       ) : (
