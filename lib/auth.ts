@@ -11,10 +11,40 @@ export async function getCurrentUser() {
   const { data: { user: authUser } } = await supabase.auth.getUser()
   if (!authUser) return null
 
-  const existing = await prisma.user.findUnique({ where: { supabaseId: authUser.id } })
+  const existing = await prisma.user.findUnique({
+    where: { supabaseId: authUser.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      supabaseId: true,
+      phone: true,
+      avatarUrl: true,
+      loyaltyPoints: true,
+      referralCode: true,
+      referredById: true,
+      createdAt: true,
+    },
+  })
+
   if (existing) {
     if (existing.email !== authUser.email) {
-      return prisma.user.update({ where: { id: existing.id }, data: { email: authUser.email ?? existing.email } })
+      return prisma.user.update({
+        where: { id: existing.id },
+        data: { email: authUser.email ?? existing.email },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          supabaseId: true,
+          phone: true,
+          avatarUrl: true,
+          loyaltyPoints: true,
+          referralCode: true,
+          referredById: true,
+          createdAt: true,
+        },
+      })
     }
     return existing
   }
@@ -29,7 +59,10 @@ export async function getCurrentUser() {
 
   let referredById: string | null = null
   if (referralCodeUsed) {
-    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCodeUsed } })
+    const referrer = await prisma.user.findUnique({
+      where: { referralCode: referralCodeUsed } as any,
+      select: { id: true },
+    })
     if (referrer) referredById = referrer.id
   }
 
@@ -43,6 +76,18 @@ export async function getCurrentUser() {
       avatarUrl: generateDefaultAvatar(seed),
       referralCode,
       referredById,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      supabaseId: true,
+      phone: true,
+      avatarUrl: true,
+      loyaltyPoints: true,
+      referralCode: true,
+      referredById: true,
+      createdAt: true,
     },
   })
 }

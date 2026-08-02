@@ -10,13 +10,19 @@ export default function ReferPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    fetch('/api/account/referral').then((r) => r.json()).then((d) => {
-      setCode(d.referralCode)
-      setReferralCount(d.referralCount)
-    })
+    fetch('/api/account/referral')
+      .then((r) => r.json())
+      .then((d) => {
+        setCode(d.referralCode ?? '')
+        setReferralCount(d.referralCount ?? 0)
+      })
+      .catch(() => {
+        setCode('')
+        setReferralCount(0)
+      })
   }, [])
 
-  const link = typeof window !== 'undefined' ? `${window.location.origin}/signup?ref=${code}` : ''
+  const link = typeof window !== 'undefined' && code ? `${window.location.origin}/signup?ref=${code}` : ''
   const whatsappText = encodeURIComponent(`I've been using Aurele for curated watches — thought you'd like it too. Sign up here: ${link}`)
 
   function handleCopy() {
@@ -47,7 +53,7 @@ export default function ReferPage() {
           </div>
         </div>
 
-        
+        <a
           href={`https://wa.me/?text=${whatsappText}`}
           target="_blank"
           rel="noopener noreferrer"
