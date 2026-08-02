@@ -5,7 +5,8 @@ import RelatedProducts from '@/components/product/RelatedProducts'
 import RecentlyViewedStrip from '@/components/product/RecentlyViewedStrip'
 import TrackView from '@/components/product/TrackView'
 import ZoomImage from '@/components/product/ZoomImage'
-import { getProductBySlug, getRelatedProducts } from '@/lib/products'
+import { getProductBySlug, getRelatedProducts } from '@/lib/products'\
+import ReviewsSection from '@/components/product/ReviewsSection'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -61,6 +62,12 @@ export default async function ProductPage({ params }: Props) {
         </div>
 
         <div className="max-w-6xl mx-auto">
+          <section className="mt-24 pt-16 border-t border-cream-deep">
+            <p className="font-mono text-xs tracking-[4px] uppercase text-gold mb-3">Reviews</p>
+            <h2 className="font-display text-3xl font-light text-ink mb-10">What People Are Saying</h2>
+            <ReviewsSection productId={product.id} />
+          </section>
+
           <RelatedProducts products={related} brandName={product.brand.name} />
           <RecentlyViewedStrip excludeSlug={product.slug} />
         </div>

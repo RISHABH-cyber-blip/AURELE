@@ -46,6 +46,8 @@ export default async function AccountPage() {
 
         {/* Quick links row */}
         <div className="flex flex-wrap gap-3 mb-12">
+          <Link href="/orders" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">My Orders</Link>
+          <Link href="/account/refer" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Refer & Earn</Link>
           <Link href="/account/profile" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Edit Profile</Link>
           <Link href="/account/addresses" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Saved Addresses</Link>
           <Link href="/wishlist" className="px-4 py-2 rounded-full text-xs border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">Wishlist</Link>
