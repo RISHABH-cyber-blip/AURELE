@@ -102,6 +102,10 @@ model User {
   phone         String?
   avatarUrl     String?
   loyaltyPoints Int      @default(0)
+  referralCode  String   @unique
+  referredById  String?
+  referredBy    User?    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  referrals     User[]   @relation("Referrals")
 }
 
 model ContactMessage {
@@ -151,6 +155,7 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([productId])
+  @@unique([productId, userId])
 }
 
 model Order {

@@ -1,76 +1,9 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { prisma } from '@/lib/prisma'
+import { generateUniqueReferralCode } from '@/lib/referral'
 
-// Generates a consistent avatar automatically from a name/email "seed" —
-// same person always gets the same avatar, no upload or URL-hunting needed.
 function generateDefaultAvatar(seed: string): string {
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b8935f&textColor=faf6f0`
-}
-
-export async function ensureUserFromAuth({
-  authUser,
-  prismaClient = prisma,
-}: {
-  authUser: {
-    id: string
-    email?: string | null
-    user_metadata?: {
-      full_name?: string | null
-      name?: string | null
-    }
-  }
-  prismaClient?: any
-}) {
-  const displayName = authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? null
-  const normalizedEmail = authUser.email?.trim().toLowerCase() ?? null
-  const seed = displayName || normalizedEmail || authUser.id
-  const avatarUrl = generateDefaultAvatar(seed)
-
-  const existingBySupabaseId = await prismaClient.user
-    .findUnique?.({ where: { supabaseId: authUser.id } })
-    .catch(() => null)
-
-  if (existingBySupabaseId) {
-    return prismaClient.user.update({
-      where: { id: existingBySupabaseId.id },
-      data: {
-        email: normalizedEmail ?? existingBySupabaseId.email,
-        name: displayName ?? existingBySupabaseId.name,
-        avatarUrl,
-      },
-    })
-  }
-
-  const existingByEmail = normalizedEmail
-    ? await prismaClient.user
-        .findUnique?.({ where: { email: normalizedEmail } })
-        .catch(() => null)
-        .then(async (user: unknown) => {
-          if (user) return user
-          return (await prismaClient.user.findFirst?.({ where: { email: normalizedEmail } }).catch(() => null)) ?? null
-        })
-    : null
-
-  if (existingByEmail) {
-    return prismaClient.user.update({
-      where: { id: existingByEmail.id },
-      data: {
-        supabaseId: authUser.id,
-        email: normalizedEmail ?? existingByEmail.email,
-        name: displayName ?? existingByEmail.name,
-        avatarUrl,
-      },
-    })
-  }
-
-  return prismaClient.user.create({
-    data: {
-      supabaseId: authUser.id,
-      email: normalizedEmail ?? '',
-      name: displayName,
-      avatarUrl,
-    },
-  })
 }
 
 export async function getCurrentUser() {
@@ -78,5 +11,38 @@ export async function getCurrentUser() {
   const { data: { user: authUser } } = await supabase.auth.getUser()
   if (!authUser) return null
 
-  return ensureUserFromAuth({ authUser })
+  const existing = await prisma.user.findUnique({ where: { supabaseId: authUser.id } })
+  if (existing) {
+    if (existing.email !== authUser.email) {
+      return prisma.user.update({ where: { id: existing.id }, data: { email: authUser.email ?? existing.email } })
+    }
+    return existing
+  }
+
+  // First-ever login — create the row. If a referral code was captured
+  // at signup (see signup page), link this new user to their referrer.
+  // NOTE: this only works reliably for email/password signup — Google
+  // OAuth doesn't pass through our custom metadata the same way.
+  const displayName = authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? null
+  const seed = displayName || authUser.email || authUser.id
+  const referralCodeUsed = authUser.user_metadata?.referral_code as string | undefined
+
+  let referredById: string | null = null
+  if (referralCodeUsed) {
+    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCodeUsed } })
+    if (referrer) referredById = referrer.id
+  }
+
+  const referralCode = await generateUniqueReferralCode()
+
+  return prisma.user.create({
+    data: {
+      supabaseId: authUser.id,
+      email: authUser.email ?? '',
+      name: displayName,
+      avatarUrl: generateDefaultAvatar(seed),
+      referralCode,
+      referredById,
+    },
+  })
 }
