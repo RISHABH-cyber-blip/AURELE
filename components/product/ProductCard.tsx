@@ -12,14 +12,15 @@ interface Props {
     createdAt?: string | Date
     brand: { name: string }
     images: { url: string; altText: string | null }[]
-    variants: { dialColor: string | null; stockQuantity: number }[]
+    variants?: { dialColor: string | null; stockQuantity: number }[]
   }
   showNewBadge?: boolean
 }
 
 export default function ProductCard({ product, showNewBadge = false }: Props) {
-  const totalStock = product.variants.reduce((sum, v) => sum + v.stockQuantity, 0)
-  const colorCount = new Set(product.variants.map((v) => v.dialColor).filter(Boolean)).size
+  const variants = Array.isArray(product.variants) ? product.variants : []
+  const totalStock = variants.reduce((sum, v) => sum + (v.stockQuantity ?? 0), 0)
+  const colorCount = new Set(variants.map((v) => v.dialColor).filter(Boolean)).size
   const price = Number(product.basePrice)
 
   return (
