@@ -5,7 +5,7 @@ import RelatedProducts from '@/components/product/RelatedProducts'
 import RecentlyViewedStrip from '@/components/product/RecentlyViewedStrip'
 import TrackView from '@/components/product/TrackView'
 import ZoomImage from '@/components/product/ZoomImage'
-import { getProductBySlug, getRelatedProducts } from '@/lib/products'\
+import { getProductBySlug, getRelatedProducts } from '@/lib/products'
 import ReviewsSection from '@/components/product/ReviewsSection'
 
 interface Props {
