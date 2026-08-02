@@ -11,42 +11,51 @@ export async function getCurrentUser() {
   const { data: { user: authUser } } = await supabase.auth.getUser()
   if (!authUser) return null
 
-  const existing = await prisma.user.findUnique({
+  const email = authUser.email?.trim().toLowerCase() ?? ''
+  const userSelect = {
+    id: true,
+    email: true,
+    name: true,
+    supabaseId: true,
+    phone: true,
+    avatarUrl: true,
+    loyaltyPoints: true,
+    referralCode: true,
+    referredById: true,
+    createdAt: true,
+  }
+
+  const existingBySupabaseId = await prisma.user.findUnique({
     where: { supabaseId: authUser.id },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      supabaseId: true,
-      phone: true,
-      avatarUrl: true,
-      loyaltyPoints: true,
-      referralCode: true,
-      referredById: true,
-      createdAt: true,
-    },
+    select: userSelect,
   })
 
-  if (existing) {
-    if (existing.email !== authUser.email) {
+  if (existingBySupabaseId) {
+    if (existingBySupabaseId.email !== email) {
       return prisma.user.update({
-        where: { id: existing.id },
-        data: { email: authUser.email ?? existing.email },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          supabaseId: true,
-          phone: true,
-          avatarUrl: true,
-          loyaltyPoints: true,
-          referralCode: true,
-          referredById: true,
-          createdAt: true,
-        },
+        where: { id: existingBySupabaseId.id },
+        data: { email },
+        select: userSelect,
       })
     }
-    return existing
+    return existingBySupabaseId
+  }
+
+  const existingByEmail = email
+    ? await prisma.user.findUnique({ where: { email }, select: userSelect })
+    : null
+
+  if (existingByEmail) {
+    return prisma.user.update({
+      where: { id: existingByEmail.id },
+      data: {
+        supabaseId: authUser.id,
+        email,
+        name: existingByEmail.name ?? authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? null,
+        avatarUrl: existingByEmail.avatarUrl ?? generateDefaultAvatar(authUser.email || authUser.id),
+      },
+      select: userSelect,
+    })
   }
 
   // First-ever login — create the row. If a referral code was captured
@@ -71,23 +80,12 @@ export async function getCurrentUser() {
   return prisma.user.create({
     data: {
       supabaseId: authUser.id,
-      email: authUser.email ?? '',
+      email,
       name: displayName,
       avatarUrl: generateDefaultAvatar(seed),
       referralCode,
       referredById,
     },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      supabaseId: true,
-      phone: true,
-      avatarUrl: true,
-      loyaltyPoints: true,
-      referralCode: true,
-      referredById: true,
-      createdAt: true,
-    },
+    select: userSelect,
   })
 }
