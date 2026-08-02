@@ -45,6 +45,18 @@ export async function POST(request: Request) {
     const buyer = await prisma.user.update({
       where: { id: order.userId },
       data: { loyaltyPoints: { increment: pointsEarned } },
+      select: {
+        id: true,
+        email: true,
+        supabaseId: true,
+        name: true,
+        createdAt: true,
+        phone: true,
+        avatarUrl: true,
+        loyaltyPoints: true,
+        referralCode: true,
+        referredById: true,
+      },
     })
 
     // First-ever paid order + was referred by someone → reward the referrer

@@ -11,7 +11,7 @@ function randomCode(length = 7): string {
 export async function generateUniqueReferralCode(): Promise<string> {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = randomCode()
-    const existing = await prisma.user.findUnique({ where: { referralCode: code } })
+    const existing = await prisma.user.findUnique({ where: { referralCode: code } as any })
     if (!existing) return code
   }
   return `${randomCode(5)}${Date.now().toString(36).slice(-3).toUpperCase()}`
