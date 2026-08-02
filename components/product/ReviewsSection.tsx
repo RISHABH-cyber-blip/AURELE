@@ -48,7 +48,7 @@ export default function ReviewsSection({ productId }: Props) {
               <div className="flex-1 h-1.5 bg-cream-deep rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-calm ${filter === n ? 'bg-gold' : 'bg-ink-faint/50'}`}
-                  style={{ width: `${summary.total > 0 ? (summary.counts[n] / summary.total) * 100 : 0}%` }}
+                  style={{ width: `${summary.total > 0 ? ((summary.counts[n] ?? 0) / summary.total) * 100 : 0}%` }}
                 />
               </div>
               <span className="w-6 text-ink-faint">{summary.counts[n] ?? 0}</span>

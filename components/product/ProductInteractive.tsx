@@ -1,4 +1,5 @@
 'use client'
+import ShareButton from '@/components/product/ShareButton'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getStockDisplay } from '@/lib/stock'
@@ -139,13 +140,24 @@ export default function ProductInteractive({ variants, basePrice, currency, prod
       </div>
 
       {/* Main add-to-cart block — tracked by the sticky bar's observer */}
-      <div ref={mainButtonRef} className="flex items-center gap-4">
+      <div ref={mainButtonRef} className="flex items-center gap-4 mb-3">
         <div className="flex items-center border border-cream-deep rounded-full overflow-hidden">
           <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-10 h-10 flex items-center justify-center text-ink-soft hover:bg-cream-soft transition-calm">−</button>
           <span className="w-10 text-center text-sm">{qty}</span>
           <button onClick={() => setQty((q) => Math.min(activeVariant.stockQuantity, q + 1))} disabled={qty >= activeVariant.stockQuantity}
             className="w-10 h-10 flex items-center justify-center text-ink-soft hover:bg-cream-soft transition-calm disabled:opacity-30">+</button>
         </div>
+
+        <div className="flex items-center gap-4 mb-4">
+        <button
+          onClick={() => { handleAddToCart(); window.location.href = '/checkout' }}
+          disabled={stock.state === 'out-of-stock'}
+          className="flex-1 py-3.5 rounded-full text-[14px] tracking-wide font-medium border border-ink text-ink transition-calm hover:bg-ink hover:text-cream disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Buy Now
+        </button>
+        <ShareButton productName={productName} productUrl={typeof window !== 'undefined' ? window.location.href : ''} />
+      </div>
 
         <button onClick={handleAddToCart} disabled={stock.state === 'out-of-stock'}
           className={cn('flex-1 py-3.5 rounded-full text-[14px] tracking-wide font-medium transition-calm',

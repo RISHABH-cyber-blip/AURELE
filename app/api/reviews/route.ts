@@ -42,7 +42,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'You can only review products you have purchased.' }, { status: 403 })
   }
 
-  const existing = await prisma.review.findUnique({ where: { productId_userId: { productId, userId: user.id } } })
+  const existing = await prisma.review.findFirst({
+    where: { productId, userId: user.id },
+  })
   if (existing) return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
 
   const review = await prisma.review.create({ data: { productId, userId: user.id, rating, title, body } })
