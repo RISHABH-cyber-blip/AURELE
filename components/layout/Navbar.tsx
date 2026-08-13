@@ -8,10 +8,13 @@ import { NAV_LINKS } from '@/data'
 import { useCartStore } from '@/store/cart-store'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
+import SearchModal from '@/components/layout/SearchModal'
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const totalQty = useCartStore((s) => s.totalQty())
 
   useEffect(() => {
@@ -31,54 +34,62 @@ export default function Navbar() {
   }, [])
 
   return (
-    <motion.nav
-      initial={{ y: -60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 transition-calm ${
-        scrolled ? 'bg-cream/90 border-b border-cream-deep shadow-sm' : 'border-b border-transparent'
-      }`}
-    >
-      <Link href="/" className="font-display text-2xl md:text-3xl tracking-[3px] text-ink font-light">
-        AURELE
-      </Link>
+    <>
+      <motion.nav
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 transition-calm ${
+          scrolled ? 'bg-cream/90 border-b border-cream-deep shadow-sm' : 'border-b border-transparent'
+        }`}
+      >
+        <Link href="/" className="font-display text-2xl md:text-3xl tracking-[3px] text-ink font-light">
+          AURELE
+        </Link>
 
-      <ul className="hidden md:flex items-center gap-9 list-none">
-        {NAV_LINKS.map((link) => (
-          <li key={link.label}>
-            <Link href={link.href} className="text-[13px] tracking-wide text-ink-soft hover:text-gold transition-calm">
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+        <ul className="hidden md:flex items-center gap-9 list-none">
+          {NAV_LINKS.map((link) => (
+            <li key={link.label}>
+              <Link href={link.href} className="text-[13px] tracking-wide text-ink-soft hover:text-gold transition-calm">
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
 
-      <div className="flex items-center gap-5 text-ink">
-        <button aria-label="Search" className="hover:text-gold transition-calm">
-          <Search size={19} strokeWidth={1.5} />
-        </button>
-        <Link
-          href={mounted && isLoggedIn ? '/account' : '/login'}
-          aria-label="Account"
-          className="hidden sm:block hover:text-gold transition-calm relative"
-        >
-          <User size={19} strokeWidth={1.5} />
-          {mounted && isLoggedIn && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gold" />
-          )}
-        </Link>
-        <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-calm">
-          <Heart size={19} strokeWidth={1.5} />
-        </Link>
-        <Link href="/cart" aria-label="Cart" className="relative hover:text-gold transition-calm">
-          <ShoppingBag size={19} strokeWidth={1.5} />
-          {mounted && totalQty > 0 && (
-            <span className="absolute -top-2 -right-2 w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-gold text-ink">
-              {totalQty}
-            </span>
-          )}
-        </Link>
-      </div>
-    </motion.nav>
+        <div className="flex items-center gap-5 text-ink">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Search"
+            className="hover:text-gold transition-calm p-1"
+          >
+            <Search size={19} strokeWidth={1.5} />
+          </button>
+          <Link
+            href={mounted && isLoggedIn ? '/account' : '/login'}
+            aria-label="Account"
+            className="hidden sm:block hover:text-gold transition-calm relative"
+          >
+            <User size={19} strokeWidth={1.5} />
+            {mounted && isLoggedIn && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gold" />
+            )}
+          </Link>
+          <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-calm">
+            <Heart size={19} strokeWidth={1.5} />
+          </Link>
+          <Link href="/cart" aria-label="Cart" className="relative hover:text-gold transition-calm">
+            <ShoppingBag size={19} strokeWidth={1.5} />
+            {mounted && totalQty > 0 && (
+              <span className="absolute -top-2 -right-2 w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-gold text-ink">
+                {totalQty}
+              </span>
+            )}
+          </Link>
+        </div>
+      </motion.nav>
+
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+    </>
   )
 }

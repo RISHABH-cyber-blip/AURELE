@@ -139,32 +139,60 @@ export default function ProductInteractive({ variants, basePrice, currency, prod
         {stock.state === 'out-of-stock' && <p className="text-sm text-ink-faint">Out of Stock</p>}
       </div>
 
-      {/* Main add-to-cart block — tracked by the sticky bar's observer */}
-      <div ref={mainButtonRef} className="flex items-center gap-4 mb-3">
-        <div className="flex items-center border border-cream-deep rounded-full overflow-hidden">
-          <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-10 h-10 flex items-center justify-center text-ink-soft hover:bg-cream-soft transition-calm">−</button>
-          <span className="w-10 text-center text-sm">{qty}</span>
-          <button onClick={() => setQty((q) => Math.min(activeVariant.stockQuantity, q + 1))} disabled={qty >= activeVariant.stockQuantity}
-            className="w-10 h-10 flex items-center justify-center text-ink-soft hover:bg-cream-soft transition-calm disabled:opacity-30">+</button>
+      {/* Action Block — Quantity, Add to Cart, Buy Now, Share */}
+      <div ref={mainButtonRef} className="space-y-4 mb-6">
+        {/* Quantity selector & Share button row */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-xs uppercase tracking-wider text-ink-faint font-medium">Quantity</span>
+            <div className="flex items-center border border-cream-deep bg-cream-soft/40 rounded-full h-10 px-1 shadow-sm">
+              <button
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-ink hover:bg-cream-deep/50 active:scale-95 transition-all"
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
+              <span className="w-8 text-center text-sm font-semibold text-ink">{qty}</span>
+              <button
+                onClick={() => setQty((q) => Math.min(activeVariant.stockQuantity, q + 1))}
+                disabled={qty >= activeVariant.stockQuantity}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-ink hover:bg-cream-deep/50 active:scale-95 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <ShareButton productName={productName} productUrl={typeof window !== 'undefined' ? window.location.href : ''} />
         </div>
 
-        <div className="flex items-center gap-4 mb-4">
-        <button
-          onClick={() => { handleAddToCart(); window.location.href = '/checkout' }}
-          disabled={stock.state === 'out-of-stock'}
-          className="flex-1 py-3.5 rounded-full text-[14px] tracking-wide font-medium border border-ink text-ink transition-calm hover:bg-ink hover:text-cream disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Buy Now
-        </button>
-        <ShareButton productName={productName} productUrl={typeof window !== 'undefined' ? window.location.href : ''} />
-      </div>
+        {/* Primary Action Buttons: Add to Cart & Buy Now */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <button
+            onClick={handleAddToCart}
+            disabled={stock.state === 'out-of-stock'}
+            className={cn(
+              'h-12 w-full rounded-full text-[13px] uppercase tracking-[1.5px] font-semibold transition-all duration-300 shadow-sm flex items-center justify-center gap-2',
+              stock.state === 'out-of-stock'
+                ? 'bg-cream-deep text-ink-faint cursor-not-allowed'
+                : justAdded
+                ? 'bg-gold text-ink shadow-gold/20 shadow-lg scale-[0.99]'
+                : 'bg-ink text-cream hover:bg-gold hover:text-ink active:scale-[0.98]'
+            )}
+          >
+            {stock.state === 'out-of-stock' ? 'Out of Stock' : justAdded ? '✓ Added to Cart' : 'Add to Cart'}
+          </button>
 
-        <button onClick={handleAddToCart} disabled={stock.state === 'out-of-stock'}
-          className={cn('flex-1 py-3.5 rounded-full text-[14px] tracking-wide font-medium transition-calm',
-            stock.state === 'out-of-stock' ? 'bg-cream-deep text-ink-faint cursor-not-allowed'
-            : justAdded ? 'bg-gold text-ink' : 'bg-ink text-cream hover:opacity-85')}>
-          {stock.state === 'out-of-stock' ? 'Out of Stock' : justAdded ? '✓ Added to Cart' : 'Add to Cart'}
-        </button>
+          <button
+            onClick={() => { handleAddToCart(); window.location.href = '/checkout' }}
+            disabled={stock.state === 'out-of-stock'}
+            className="h-12 w-full rounded-full text-[13px] uppercase tracking-[1.5px] font-semibold border-2 border-gold text-ink hover:bg-gold hover:text-ink transition-all duration-300 shadow-sm flex items-center justify-center active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-ink"
+          >
+            Buy Now
+          </button>
+        </div>
       </div>
 
       {/* SURPRISE FEATURE: real restock notification, only shown when actually out of stock */}
