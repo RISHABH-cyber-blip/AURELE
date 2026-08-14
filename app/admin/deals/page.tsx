@@ -11,7 +11,7 @@ export default async function AdminDealsPage() {
     return (
         <div>
             <h1 className="font-display text-3xl font-light text-ink mb-8">The Hourglass Edit — Deals</h1>
-            <DealsManager deals={deals} products={products} />
+            <DealsManager deals={deals} products={JSON.parse(JSON.stringify(products))} />
         </div>
     )
 }

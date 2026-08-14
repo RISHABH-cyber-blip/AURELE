@@ -23,6 +23,7 @@ export async function getCurrentUser() {
     referralCode: true,
     referredById: true,
     createdAt: true,
+    isAdmin: true,
   }
 
   const existingBySupabaseId = await prisma.user.findUnique({

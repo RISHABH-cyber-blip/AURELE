@@ -17,8 +17,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         <div>
             <h1 className="font-display text-3xl font-light text-ink mb-8">Edit {product.name}</h1>
             <ProductForm
-                brands={brands}
-                categories={categories}
+                brands={JSON.parse(JSON.stringify(brands))}
+                categories={JSON.parse(JSON.stringify(categories))}
                 product={{ ...product, variants: product.variants }}
             />
         </div>

@@ -10,7 +10,7 @@ export default async function NewProductPage() {
     return (
         <div>
             <h1 className="font-display text-3xl font-light text-ink mb-8">Add Product</h1>
-            <ProductForm brands={brands} categories={categories} />
+            <ProductForm brands={JSON.parse(JSON.stringify(brands))} categories={JSON.parse(JSON.stringify(categories))} />
         </div>
     )
 }
