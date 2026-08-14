@@ -21,14 +21,18 @@ export default function WelcomeGatePage() {
 
   async function handleAgree() {
     setLoading(true)
-    await fetch('/api/consent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'disclaimer' }),
-    })
+    try {
+      await fetch('/api/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'disclaimer' }),
+      })
+    } catch (e) {
+      console.error('Consent error:', e)
+    }
+    document.cookie = 'aurele_disclaimer_agreed=true; path=/; max-age=31536000; SameSite=Lax'
     const next = searchParams.get('next') || '/'
-    router.push(next)
-    router.refresh()
+    window.location.href = next
   }
 
   function handleDisagree() {
