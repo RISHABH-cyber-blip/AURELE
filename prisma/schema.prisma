@@ -106,6 +106,7 @@ model User {
   referredById  String?
   referredBy    User?    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   referrals     User[]   @relation("Referrals")
+  isAdmin       Boolean  @default(false)
 }
 
 model ContactMessage {
