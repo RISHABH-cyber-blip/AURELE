@@ -24,7 +24,7 @@ export default function RefundPolicyPage() {
             </section>
             <section>
               <h2 className="font-display text-xl text-ink mb-3">How to Start a Return</h2>
-              <p>Contact hello@aurele.com with your order number to begin the return process. We'll provide a prepaid return label for eligible items.</p>
+              <p>Contact rm1994269@gmail.com with your order number to begin the return process. We'll provide a prepaid return label for eligible items.</p>
             </section>
             <section>
               <h2 className="font-display text-xl text-ink mb-3">Refund Timeline</h2>

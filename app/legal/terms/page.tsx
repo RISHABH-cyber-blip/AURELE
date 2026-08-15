@@ -43,7 +43,7 @@ export default function TermsPage() {
             </section>
             <section>
               <h2 className="font-display text-xl text-ink mb-3">7. Contact</h2>
-              <p>Questions about these Terms can be sent to hello@aurele.com.</p>
+              <p>Questions about these Terms can be sent to rm1994269@gmail.com.</p>
             </section>
           </div>
         </div>

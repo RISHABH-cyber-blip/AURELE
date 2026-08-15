@@ -35,7 +35,7 @@ export default function PrivacyPage() {
             </section>
             <section>
               <h2 className="font-display text-xl text-ink mb-3">5. Your Rights</h2>
-              <p>You may request access to, correction of, or deletion of your personal data at any time by contacting hello@aurele.com.</p>
+              <p>You may request access to, correction of, or deletion of your personal data at any time by contacting rm1994269@gmail.com.</p>
             </section>
             <section>
               <h2 className="font-display text-xl text-ink mb-3">6. Data Security</h2>
