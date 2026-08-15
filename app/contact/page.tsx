@@ -42,7 +42,7 @@ export default function ContactPage() {
             <a href="mailto:rm1994269@gmail.com" className="px-5 py-2.5 rounded-full text-sm border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">
               rm1994269@gmail.com
             </a>
-            <a href="https://wa.me/910000000000" target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-full text-sm border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">
+            <a href="https://wa.me/918076062578" target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-full text-sm border border-cream-deep text-ink-soft hover:border-gold hover:text-gold transition-calm">
               WhatsApp Us
             </a>
           </div>
