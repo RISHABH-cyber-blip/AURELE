@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Fraunces, Inter, Space_Mono } from 'next/font/google'
 import CookieBanner from '@/components/layout/CookieBanner'
 import { getCookieConsent } from '@/lib/cookies'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
 const fraunces = Fraunces({
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-cream text-ink font-body antialiased">
         {children}
         <CookieBanner initialConsent={consent} />
+        <SpeedInsights />
       </body>
     </html>
   )
