@@ -9,6 +9,8 @@ import HourglassEdit from '@/components/layout/HourglassEdit'
 import TrustBar from '@/components/layout/TrustBar'
 import Footer from '@/components/layout/Footer'
 
+export const revalidate = 60
+
 function SectionSkeleton() {
   return <div className="h-96 animate-pulse bg-cream-soft/40 mx-6 md:mx-16 rounded-2xl my-8" />
 }

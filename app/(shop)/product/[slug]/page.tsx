@@ -8,6 +8,8 @@ import ZoomImage from '@/components/product/ZoomImage'
 import { getProductBySlug, getRelatedProducts } from '@/lib/products'
 import ReviewsSection from '@/components/product/ReviewsSection'
 
+export const revalidate = 60 // regenerate this page in the background at most once per 60 seconds
+
 interface Props {
   params: Promise<{ slug: string }>
 }

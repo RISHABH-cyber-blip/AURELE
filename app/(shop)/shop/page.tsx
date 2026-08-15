@@ -5,6 +5,8 @@ import SortDropdown from '@/components/product/SortDropdown'
 import Pagination from '@/components/product/Pagination'
 import Navbar from '@/components/layout/Navbar'
 
+export const revalidate = 60
+
 interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>
 }

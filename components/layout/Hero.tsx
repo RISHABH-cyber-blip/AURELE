@@ -4,6 +4,8 @@ import { Suspense } from 'react'
 import { motion } from 'framer-motion'
 import WatchCanvas from '../three/watchCanvas'
 import { HERO_STATS } from '@/data'
+import Link from 'next/link'
+import { Link as LinkIcon } from 'lucide-react'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -35,12 +37,18 @@ export default function Hero() {
         </motion.p>
 
         <motion.div {...fadeUp(0.55)} className="flex flex-wrap gap-4 mb-16">
-          <a href="/shop" className="px-9 py-3.5 rounded-full text-[14px] tracking-wide font-medium bg-ink text-cream transition-calm hover:opacity-85">
+          <LinkIcon
+            href="/shop"
+            className="px-9 py-3.5 rounded-full text-[14px] tracking-wide font-medium bg-ink text-cream transition-calm hover:opacity-85"
+          >
             Explore the Collection
-          </a>
-          <a href="/authenticity" className="px-9 py-3.5 rounded-full text-[14px] tracking-wide font-medium border border-cream-deep text-ink transition-calm hover:border-gold hover:text-gold">
+          </LinkIcon>
+          <LinkIcon
+            href="/authenticity"
+            className="px-9 py-3.5 rounded-full text-[14px] tracking-wide font-medium border border-cream-deep text-ink transition-calm hover:border-gold hover:text-gold"
+          >
             Our Authentication Process
-          </a>
+          </LinkIcon>
         </motion.div>
 
         <motion.div {...fadeUp(0.7)} className="flex gap-10 pt-8 border-t border-cream-deep">
