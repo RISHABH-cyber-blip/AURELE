@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { unstable_cache } from 'next/cache'
 
 export interface ProductFilters {
   brands?: string[]
@@ -26,8 +27,8 @@ export async function getProducts(filters: ProductFilters) {
 
   const orderBy =
     sort === 'price-asc' ? { basePrice: 'asc' as const }
-    : sort === 'price-desc' ? { basePrice: 'desc' as const }
-    : { createdAt: 'desc' as const }
+      : sort === 'price-desc' ? { basePrice: 'desc' as const }
+        : { createdAt: 'desc' as const }
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
@@ -40,16 +41,24 @@ export async function getProducts(filters: ProductFilters) {
   return { products, total, totalPages: Math.ceil(total / pageSize) }
 }
 
-export async function getAllBrands() {
-  return prisma.brand.findMany({ orderBy: { name: 'asc' } })
-}
+export const getAllBrands = unstable_cache(
+  async () => prisma.brand.findMany({ orderBy: { name: 'asc' } }),
+  ['all-brands'],
+  { revalidate: 300 } // 5 minutes — brands basically never change
+)
 
-export async function getDialColorOptions() {
-  const rows = await prisma.productVariant.findMany({
-    distinct: ['dialColor'], select: { dialColor: true }, where: { dialColor: { not: null } },
-  })
-  return rows.map((r) => r.dialColor!).filter(Boolean).sort()
-}
+export const getDialColorOptions = unstable_cache(
+  async () => {
+    const rows = await prisma.productVariant.findMany({
+      distinct: ['dialColor'],
+      select: { dialColor: true },
+      where: { dialColor: { not: null } },
+    })
+    return rows.map((r) => r.dialColor!).filter(Boolean).sort()
+  },
+  ['dial-color-options'],
+  { revalidate: 300 }
+)
 
 export async function getProductBySlug(slug: string) {
   return prisma.product.findUnique({
@@ -83,14 +92,18 @@ export async function getNewArrivals(categorySlug?: string, take = 8) {
 
 // NEW — real live product counts per category, shown on the Shop by
 // Category cards instead of made-up numbers
-export async function getCategoryCounts() {
-  const categories = await prisma.category.findMany()
-  const counts = await Promise.all(
-    categories.map(async (c) => ({
-      slug: c.slug,
-      name: c.name,
-      count: await prisma.product.count({ where: { categoryId: c.id, isPublished: true } }),
-    }))
-  )
-  return counts
-}
+export const getCategoryCounts = unstable_cache(
+  async () => {
+    const categories = await prisma.category.findMany()
+    const counts = await Promise.all(
+      categories.map(async (c) => ({
+        slug: c.slug,
+        name: c.name,
+        count: await prisma.product.count({ where: { categoryId: c.id, isPublished: true } }),
+      }))
+    )
+    return counts
+  },
+  ['category-counts'],
+  { revalidate: 120 }
+)
