@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { DISCLAIMER_COOKIE } from '@/lib/cookies'
 
-const ALLOWLIST = ['/welcome', '/api/', '/auth/', '/legal/', '/_next/', '/favicon.ico']
+const ALLOWLIST = ['/welcome', '/api/', '/auth/', '/callback', '/legal/', '/_next/', '/favicon.ico']
 
 // Only these paths actually need the auth session refreshed server-side
 // (they render user-specific data via getCurrentUser()). Everything else
